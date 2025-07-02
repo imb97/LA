@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPON Raisecom Config Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* General styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        /* Card styles */
+        .card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        /* Upload area styles */
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+        }
+
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.6;
+        }
+
+        .upload-text {
+            font-size: 1.125rem;
+            color: #475569;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+        
+        /* New styles for required columns info */
+        .required-columns {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            text-align: left; /* Align text left within this div */
+        }
+
+        .required-columns p {
+            font-size: 0.9rem;
+            color: #475569;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .required-columns ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .required-columns ul li {
+            margin-bottom: 3px;
+        }
+
+
+        .file-info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* Radio group for config type */
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 1.5rem; /* Added margin for separation */
+        }
+
+        .radio-option {
+            flex: 1;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .radio-option:hover {
+            border-color: #3b82f6;
+        }
+
+        .radio-option.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .radio-option input {
+            margin-right: 0.5rem;
+        }
+        
+        /* Button styles */
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #2563eb;
+        }
+
+        .btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* Loading indicator */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 2rem;
+            height: 2rem;
+            border: 2px solid #e2e8f0;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results section */
+        .results {
+            display: none;
+        }
+
+        .olt-group {
+            margin-bottom: 2rem;
+        }
+
+        .olt-header {
+            padding: 1rem 1.5rem;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            border-bottom: none;
+            background: #f1f5f9; /* Original background */
+            /* Added styles for text wrapping and margin if header gets long */
+            word-wrap: break-word;
+            white-space: normal;
+        }
+        /* Make the header text fit on smaller screens */
+        @media (max-width: 768px) {
+            .olt-header {
+                font-size: 0.9rem;
+            }
+        }
+
+
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 0 0 8px 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.875rem;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem; /* Space between buttons */
+        }
+
+        .copy-btn, .export-btn { /* Apply styles to both copy and export buttons */
+            border: 1px solid; /* Use generic border for both */
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        /* Specific styles for export button (GREEN) */
+        .export-btn { 
+            background: #22c55e; /* Green background */
+            color: white; /* White text for contrast */
+            border-color: #16a34a; /* Darker green border */
+        }
+
+        .export-btn:hover {
+            background: #16a34a; /* Darker green on hover */
+            border-color: #15803d; /* Even darker border on hover */
+        }
+
+        /* Specific styles for copy button (DEFAULT) */
+        .copy-btn { 
+            background: #f8fafc;
+            color: #475569;
+            border-color: #e2e8f0;
+        }
+
+        .copy-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+
+        .config-content {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0 0 8px 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            max-height: 500px; /* Added for vertical scroll */
+            overflow: auto; /* Handles both horizontal and vertical overflow */
+            white-space: pre;
+        }
+
+        /* Direct Profile Input Areas */
+        .default-profile-input-card,
+        .profile-input-card { 
+            margin-top: 2rem; 
+        }
+        .profile-input-card textarea {
+            width: 100%;
+            height: 150px; 
+            margin-top: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.875rem;
+            resize: vertical;
+        }
+        .profile-input-card .action-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .profile-input-card .action-row .btn {
+            margin: 0; 
+            padding: 0.6rem 1.5rem;
+        }
+        .profile-input-card #policingProfileStatus { /* Kept ID for consistency */
+            font-size: 0.875rem;
+            color: #64748b;
+            flex-grow: 1; 
+            text-align: right;
+        }
+
+        /* Styles for new default profile inputs */
+        .default-profile-input-card .input-group {
+            margin-bottom: 1rem;
+        }
+        .default-profile-input-card label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #475569;
+        }
+        .default-profile-input-card input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .default-profile-input-card p {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-top: 0.5rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .radio-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .radio-option {
+                justify-content: flex-start;
+            }
+            .profile-input-card .action-row { /* Changed class */
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .profile-input-card .action-row .btn { /* Changed class */
+                width: 100%; 
+            }
+            .profile-input-card #policingProfileStatus { /* Kept ID for consistency */
+                text-align: left; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>GPON Raisecom Config Generator</h1>
+            <p>Generate Raisecom GPON/XGSPON configuration from Excel data</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Upload Excel File</div>
+            </div>
+            <div class="card-content">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">Click or drag Excel file here</div>
+                    <div class="upload-hint">Supports .xlsx and .xls files</div>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
+                </div>
+                <div class="required-columns">
+                    <p>File Excel Anda harus memiliki kolom-kolom berikut:</p>
+					<p><strong>Service ID | Customer Name | Egress | Ingress | SN Modem | OLT | ONT | Port | SVLAN | CVLAN | Mode</strong></p>
+                    <ul>
+                        <li><strong>Service ID</strong>: Service Instance atau Nomor Jaringan</li>
+                        <li><strong>Customer Name</strong>: Nama pelanggan</li>
+                        <li><strong>Ingress</strong>: Bandwidth Upload</li>
+                        <li><strong>Egress</strong>: Bandwidth Download</li>
+                        <li><strong>SN Modem</strong>: Serial Number Modem</li>
+                        <li><strong>OLT</strong>: Nama atau ID OLT (misal: 1/1, 1/2)</li>
+                        <li><strong>ONT</strong>: Nomor ONT di OLT (misal: 1, 2)</li>
+                        <li><strong>Port</strong>: Port ONT (misal: 1 atau 1,2)</li>
+                        <li><strong>SVLAN</strong>: Service VLAN *(Opsional)</li>
+                        <li><strong>CVLAN</strong>: Customer VLAN</li>
+                        <li><strong>Mode</strong>: Mode port (<code>access</code> atau <code>trunk</code>)</li>
+                    </ul>
+                </div>
+				<p><strong>Example Template:</strong> <a target="_blank" href="https://lintasarta-my.sharepoint.com/:x:/g/personal/iqbal_musthofa_lintasarta_co_id/EUphJx16voNDlJ4Ovu0ZHp4BE-b6BgEXgTnjvtIdmUBEfQ?e=FLkBAK">Click here</a></p>
+                <div class="file-info" id="fileInfo">
+                    <div><strong>File:</strong> <span id="fileName"></span></div>
+                    <div><strong>Records:</strong> <span id="recordCount"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card default-profile-input-card" id="default-profile-input-card">
+            <div class="card-header">
+                <div class="card-title">Default Line/Service Profile (Global)</div>
+            </div>
+            <div class="card-content">
+                <div class="input-group">
+                    <label for="defaultLineProfileId">Default Line Profile ID:</label>
+                    <input type="text" id="defaultLineProfileId" placeholder="e.g., 100">
+                    <p>This ID will be used for <code>line-profile</code> command.</p>
+                </div>
+                <div class="input-group">
+                    <label for="defaultServiceProfileId">Default Service Profile ID:</label>
+                    <input type="text" id="defaultServiceProfileId" placeholder="e.g., 99">
+                    <p>This ID will be used for <code>service-profile</code> command.</p>
+                </div>
+            </div>
+        </div>
+        <div class="card profile-input-card"> <div class="card-header">
+                <div class="card-title">Input `show policing-profile all` Output</div>
+            </div>
+            <div class="card-content">
+                <p>Paste the output of `show policing-profile all` command here:</p>
+                <textarea id="policingProfileTextArea" placeholder="Paste data here..."></textarea> <div class="action-row">
+                    <button class="btn" id="parseProfileBtn">Parse Policing Profiles</button> <span id="policingProfileStatus" class="status-text">(Not loaded)</span> </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Configuration Type</div>
+            </div>
+            <div class="card-content">
+                <div class="radio-group">
+                    <label class="radio-option selected" id="gponRadio">
+                        <input type="radio" name="configType" value="gpon" checked>
+                        <span>GPON</span>
+                    </label>
+                    <label class="radio-option" id="xgsponRadio">
+                        <input type="radio" name="configType" value="xgspon">
+                        <span>XGSPON</span>
+                    </label>
+                </div>
+                <button class="btn" id="generateBtn" disabled style="margin-top: 1.5rem;">
+                    Generate Configuration
+                </button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>Processing data...</div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Parsed Data</div>
+                </div>
+                <div class="card-content">
+                    <div id="dataResults"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header config-header">
+                    <div class="card-title">Generated Configuration</div>
+                    <button class="export-btn" onclick="exportConfigAsTxt()">Export to TXT</button>
+                    <button class="copy-btn" onclick="copyConfig()">Copy</button> 
+                </div>
+                <div class="config-content" id="configContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let excelData = [];
+        let configType = 'gpon';
+        let lineProfiles = []; 
+        let missingProfiles = new Set(); 
+
+        const bandwidthAliases = { 
+            '1M': '1024K', '2M': '2048K', '3M': '3072K', '4M': '4096K',
+            '5M': '5120K', '6M': '6144K', '7M': '7168K', '8M': '8192K',
+            '9M': '9216K', '10M': '10240K', '20M': '20480K', '30M': '30720K',
+            '40M': '40960K', '50M': '51200K', '60M': '61440K', '70M': '71680K',
+            '80M': '81920K', '90M': '92160K', '100M': '102400K', '500M': '512000K',
+            '1G': '1024000K', '1.1G': '1126464K', '1.2G': '1228800K', 
+            '2.5G': '2560000K', '5G': '5120000K', '10G': '10240000K' 
+        };
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const generateBtn = document.getElementById('generateBtn');
+        const policingProfileTextArea = document.getElementById('policingProfileTextArea'); 
+        const parseProfileBtn = document.getElementById('parseProfileBtn'); 
+        const policingProfileStatus = document.getElementById('policingProfileStatus');
+        
+        const defaultLineProfileIdInput = document.getElementById('defaultLineProfileId');
+        const defaultServiceProfileIdInput = document.getElementById('defaultServiceProfileId');
+
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('drop', handleDrop);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        fileInput.addEventListener('change', handleFileSelect);
+
+        document.querySelectorAll('input[name="configType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                configType = this.value;
+                document.querySelectorAll('.radio-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                this.closest('.radio-option').classList.add('selected');
+                checkGenerateButtonState();
+            });
+        });
+
+        generateBtn.addEventListener('click', generateConfiguration);
+        parseProfileBtn.addEventListener('click', parseAndSaveLineProfiles); 
+
+        defaultLineProfileIdInput.addEventListener('input', checkGenerateButtonState);
+        defaultServiceProfileIdInput.addEventListener('input', checkGenerateButtonState);
+
+        // Initial check when the page loads
+        document.addEventListener('DOMContentLoaded', checkGenerateButtonState);
+
+
+        function checkGenerateButtonState() {
+            const isExcelLoaded = excelData.length > 0;
+            const isLineProfilesLoaded = lineProfiles.length > 0;
+            const isDefaultLineProfileSet = defaultLineProfileIdInput.value.trim() !== '';
+            const isDefaultServiceProfileSet = defaultServiceProfileIdInput.value.trim() !== '';
+            
+            // The button is enabled if Excel, Line Profiles (from 'show line-profile all'),
+            // Default Line Profile ID, AND Default Service Profile ID are all set.
+            if (isExcelLoaded && isLineProfilesLoaded && isDefaultLineProfileSet && isDefaultServiceProfileSet) {
+                generateBtn.disabled = false;
+            } else {
+                generateBtn.disabled = true;
+            }
+        }
+
+        /* --- File Upload Logic --- */
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave() {
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        function processFile(file) {
+            if (!file.name.match(/\.(xlsx|xls)$/)) {
+                alert('Please select a valid Excel file (.xlsx or .xls).');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    if (jsonData.length < 2) {
+                        alert('Excel file must contain header and data rows.');
+                        return;
+                    }
+
+                    const headers = jsonData[0];
+                    excelData = jsonData.slice(1).map(row => {
+                        const obj = {};
+                        headers.forEach((header, index) => {
+                            obj[header] = row[index] || '';
+                        });
+                        return obj;
+                    }).filter(row => row['Service ID']); 
+
+                    document.getElementById('fileName').textContent = file.name;
+                    document.getElementById('recordCount').textContent = excelData.length;
+                    fileInfo.style.display = 'block';
+                    checkGenerateButtonState();
+
+                } catch (error) {
+                    alert('Error reading Excel file: ' + error.message);
+                    console.error('File reading error:', error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        /* --- Line Profile Parsing Logic (Direct Input) --- */
+        function parseAndSaveLineProfiles() {
+            const rawText = policingProfileTextArea.value; 
+            lineProfiles = parseLineProfileOutput(rawText);
+            if (lineProfiles.length > 0) {
+                policingProfileStatus.textContent = `(Loaded ${lineProfiles.length} profiles)`; 
+                policingProfileStatus.style.color = '#10b981'; 
+            } else {
+                policingProfileStatus.textContent = '(No profiles parsed)';
+                policingProfileStatus.style.color = '#ef4444'; 
+            }
+            checkGenerateButtonState();
+        }
+
+        function parseLineProfileOutput(text) {
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            const profiles = [];
+            let dataStarted = false;
+
+            for (const line of lines) {
+                if (line.startsWith('---')) {
+                    dataStarted = true;
+                    continue;
+                }
+                if (dataStarted) {
+                    const id = line.substring(0, 5).trim();
+                    const name = line.substring(5, 27).trim(); 
+                    const cir = line.substring(27, 36).trim();
+                    const cbs = line.substring(36, 45).trim();
+                    const pir = line.substring(45, 54).trim();
+                    const pbs = line.substring(54, 63).trim();
+                    const ref = line.substring(63).trim();
+
+                    if (id && name && cir && cbs && pir && pbs && ref) {
+                        if (!isNaN(parseInt(id)) && !isNaN(parseInt(cir))) { 
+                            profiles.push({
+                                'Profile ID': id,
+                                'Profile Name': name,
+                                'Cir': cir,
+                                'Cbs': cbs,
+                                'Pir': pir,
+                                'Pbs': pbs,
+                                'Ref': ref
+                            });
+                        }
+                    }
+                }
+            }
+            console.log('Parsed Line Profiles:', profiles);
+            return profiles;
+        }
+
+        /* --- Bandwidth Normalization --- */
+        // UPDATED: More robust normalizeBandwidth function
+        function normalizeBandwidth(value) {
+            let valStr = String(value).trim().toUpperCase();
+            
+            // First, try direct alias lookup for common values like '1M', '1G' etc.
+            if (bandwidthAliases[valStr]) {
+                return bandwidthAliases[valStr]; // Returns e.g., '10240K'
+            }
+
+            // If not found in aliases, try to parse the string
+            const match = valStr.match(/^(\d+(\.\d+)?)([KMG])$/);
+            if (match) {
+                let numericValue = parseFloat(match[1]);
+                const unit = match[3]; // K, M, G
+
+                switch (unit) {
+                    case 'K':
+                        return `${Math.round(numericValue)}K`;
+                    case 'M':
+                        return `${Math.round(numericValue * 1024)}K`; // Convert Mbps to Kbps
+                    case 'G':
+                        return `${Math.round(numericValue * 1024 * 1000)}K`; // Convert Gbps to Kbps
+                }
+            }
+            
+            // If it's just a number (e.g., '512' implicitly Kbps or a profile ID)
+            if (!isNaN(parseFloat(valStr)) && valStr !== '') {
+                // If the number is used as a profile ID (e.g. '100'), it should not be converted to 'K'
+                // For bandwidth values, assume K if no unit is specified (e.g. '512' means '512K')
+                // This is a common convention, but can be ambiguous. Let's assume it means 'K' for now.
+                return `${Math.round(parseFloat(valStr))}K`;
+            }
+
+            // If none of the above, return original value (or handle as an error/unknown)
+            return value; 
+        }
+
+        // UPDATED: Helper function to format bandwidth for display
+        function formatBandwidthForDisplay(kbpsValue) {
+            if (isNaN(kbpsValue) || kbpsValue === 0) return '0K';
+            
+            const G_THRESHOLD = 1024 * 1000; // 1 GB in Kbps
+            const M_THRESHOLD = 1024;        // 1 MB in Kbps
+
+            // Check for exact Gigabytes
+            if (kbpsValue >= G_THRESHOLD && kbpsValue % G_THRESHOLD === 0) {
+                return `${kbpsValue / G_THRESHOLD}G`;
+            }
+            // Check for exact Megabytes
+            if (kbpsValue >= M_THRESHOLD && kbpsValue % M_THRESHOLD === 0) {
+                return `${kbpsValue / M_THRESHOLD}M`;
+            }
+
+            // Fallback for non-exact values
+            if (kbpsValue >= G_THRESHOLD) { 
+                return `${(kbpsValue / G_THRESHOLD).toFixed(2)}G`;
+            } else if (kbpsValue >= M_THRESHOLD) { 
+                return `${(kbpsValue / M_THRESHOLD).toFixed(2)}M`;
+            } else { // Kbps
+                return `${kbpsValue}K`;
+            }
+        }
+        
+        /* --- Get Line Profile Match --- */
+        function getLineProfileMatch(inputValue, serviceId, direction) {
+            if (!inputValue || inputValue === '-') {
+                return { id: '-', name: '-' };
+            }
+
+            const inputNormalized = normalizeBandwidth(inputValue);
+            
+            let matchedProfile = lineProfiles.find(p => 
+                p['Profile Name'] && normalizeBandwidth(p['Profile Name']) === inputNormalized
+            );
+
+            if (!matchedProfile) {
+                // If not found by direct profile name match, try looking up in bandwidthAliases if the original input was an alias.
+                // This step is less critical now with the improved normalizeBandwidth, but kept for robustness.
+                if (bandwidthAliases[inputValue.toUpperCase()]) {
+                    const kEquivalent = bandwidthAliases[inputValue.toUpperCase()];
+                    matchedProfile = lineProfiles.find(p => 
+                        p['Profile Name'] && p['Profile Name'].toUpperCase() === kEquivalent.toUpperCase()
+                    );
+                }
+            }
+            
+            if (matchedProfile) {
+                return {
+                    id: matchedProfile['Profile ID'],
+                    name: matchedProfile['Profile Name']
+                };
+            } else {
+                missingProfiles.add(`${serviceId} - ${direction} (${inputValue})`);
+                return { id: '-', name: '-' }; 
+            }
+        }
+
+
+        /* --- Main Configuration Generation Logic --- */
+        function generateConfiguration() {
+            const defaultLineProfile = defaultLineProfileIdInput.value.trim();
+            const defaultServiceProfile = defaultServiceProfileIdInput.value.trim();
+
+            if (excelData.length === 0) {
+                alert('Please upload an Excel file.');
+                return;
+            }
+            if (lineProfiles.length === 0) {
+                 alert("Error: 'show line-profile all' data is required.");
+                 return;
+            }
+            if (defaultLineProfile === '') {
+                alert("Error: Default Line Profile ID is required.");
+                return;
+            }
+            if (defaultServiceProfile === '') {
+                alert("Error: Default Service Profile ID is required.");
+                return;
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            missingProfiles.clear(); 
+
+            setTimeout(() => {
+                const groupedData = groupByOLT(excelData);
+                
+                displayParsedData(groupedData, defaultLineProfile, defaultServiceProfile); 
+                
+                const config = generateConfig(groupedData, defaultLineProfile, defaultServiceProfile);
+                document.getElementById('configContent').textContent = config;
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('results').style.display = 'block';
+
+                if (missingProfiles.size > 0) {
+                    let alertMessage = "Warning: Some Ingress/Egress profiles from Excel were not found in the provided 'show line-profile all' data. These are only relevant if you are NOT using the Default Line Profile ID.\n\n";
+                    alertMessage += "Missing Profiles:\n";
+                    missingProfiles.forEach(item => {
+                        alertMessage += `- ${item}\n`;
+                    });
+                    alertMessage += "\nCheck the 'Parsed Data' table for details. If a Default Line Profile ID is set, it will take precedence for the main 'line-profile' command.";
+                    alert(alertMessage);
+                }
+
+            }, 500);
+        }
+
+        function groupByOLT(data) {
+            const grouped = {};
+            
+            data.forEach(row => {
+                const olt = row['OLT'] || 'Unknown';
+                if (!grouped[olt]) {
+                    grouped[olt] = [];
+                }
+                grouped[olt].push(row);
+            });
+
+            // Sort each ONT group by ONT number for consistent output
+            Object.keys(grouped).forEach(olt => {
+                grouped[olt].sort((a, b) => {
+                    const ontA = parseInt(a['ONT']) || 0;
+                    const ontB = parseInt(b['ONT']) || 0;
+                    return ontA - ontB;
+                });
+            });
+
+            return grouped;
+        }
+
+        // UPDATED: Added total ingress and egress to OLT header
+        function displayParsedData(groupedData, defaultLineProfile, defaultServiceProfile) {
+            const resultsDiv = document.getElementById('dataResults');
+            resultsDiv.innerHTML = '';
+
+            Object.keys(groupedData).sort().forEach(olt => {
+                const oltGroup = document.createElement('div');
+                oltGroup.className = 'olt-group';
+                
+                const header = document.createElement('div');
+                header.className = 'olt-header';
+
+                // Calculate unique ONTs for this OLT
+                const uniqueOntsInOlt = new Set();
+                let totalIngressBandwidthK = 0; // Initialize sum for ingress bandwidth
+                let totalEgressBandwidthK = 0;   // Initialize sum for egress bandwidth
+
+                groupedData[olt].forEach(row => {
+                    uniqueOntsInOlt.add(row['ONT']);
+                    
+                    // Sum Ingress Bandwidth
+                    const ingressValue = row['Ingress'];
+                    if (ingressValue && String(ingressValue).trim() !== '-') {
+                        const normalizedIngress = normalizeBandwidth(ingressValue);
+                        // Ensure that normalizeBandwidth returns 'XXXK' format for parsing
+                        const ingressInK = parseInt(normalizedIngress.replace('K', ''));
+                        if (!isNaN(ingressInK)) {
+                            totalIngressBandwidthK += ingressInK;
+                        }
+                    }
+
+                    // Sum Egress Bandwidth
+                    const egressValue = row['Egress'];
+                    if (egressValue && String(egressValue).trim() !== '-') {
+                        const normalizedEgress = normalizeBandwidth(egressValue);
+                        const egressInK = parseInt(normalizedEgress.replace('K', ''));
+                        if (!isNaN(egressInK)) {
+                            totalEgressBandwidthK += egressInK;
+                        }
+                    }
+                });
+
+                // Update header text to include total ingress and egress
+                header.textContent = `OLT ${olt} (${uniqueOntsInOlt.size} Unique ONTs) | Ingress: ${formatBandwidthForDisplay(totalIngressBandwidthK)} | Egress: ${formatBandwidthForDisplay(totalEgressBandwidthK)}`;
+                
+                const tableContainer = document.createElement('div');
+                tableContainer.className = 'table-container';
+                
+                const table = document.createElement('table');
+                
+                const headerRow = document.createElement('tr');
+                const columns = [
+                    'Service ID', 'Customer Name', 'SN Modem', 'ONT', 'Port', 'SVLAN', 'CVLAN', 'Mode', 
+                    'Ingress', 'Egress', 'line-profile', 'service-profile', 
+                    'Ingress PP Match', 'Egress PP Match' 
+                ];
+                columns.forEach(col => {
+                    const th = document.createElement('th');
+                    th.textContent = col;
+                    headerRow.appendChild(th);
+                });
+                table.appendChild(headerRow);
+                
+                groupedData[olt].forEach(row => {
+                    const tr = document.createElement('tr');
+
+                    const ingressMatch = getLineProfileMatch(row['Ingress'], row['Service ID'], 'Ingress');
+                    const egressMatch = getLineProfileMatch(row['Egress'], row['Service ID'], 'Egress');
+
+                    columns.forEach(col => {
+                        const td = document.createElement('td');
+                        if (col === 'Ingress PP Match') {
+                            td.textContent = `${ingressMatch.id} (${ingressMatch.name})`;
+                        } else if (col === 'Egress PP Match') {
+                            td.textContent = `${egressMatch.id} (${egressMatch.name})`;
+                        } else if (col === 'line-profile') {
+                            // ONLY display defaultLineProfile if available, otherwise '-'
+                            td.textContent = defaultLineProfile || '-';
+                            if (defaultLineProfile) {
+                                td.style.fontWeight = 'bold'; // Optional: highlight if it's the global default
+                                td.title = 'Using Global Default';
+                            }
+                        } else if (col === 'service-profile') {
+                            // ONLY display defaultServiceProfile if available, otherwise '-'
+                            td.textContent = defaultServiceProfile || '-';
+                            if (defaultServiceProfile) {
+                                td.style.fontWeight = 'bold'; // Optional: highlight if it's the global default
+                                td.title = 'Using Global Default';
+                            }
+                        }
+                        else {
+                            td.textContent = row[col] || '-'; 
+                        }
+                        tr.appendChild(td);
+                    });
+                    table.appendChild(tr);
+                });
+                
+                tableContainer.appendChild(table);
+                oltGroup.appendChild(header);
+                oltGroup.appendChild(tableContainer);
+                resultsDiv.appendChild(oltGroup);
+            });
+        }
+
+        function generateConfig(groupedData, defaultLineProfile, defaultServiceProfile) {
+            let config = '';
+            const configTitle = configType.toUpperCase();
+            
+            // Calculate total unique ONTs across all OLTs
+            let totalUniqueOnts = 0;
+            const allUniqueOnts = new Set();
+            Object.keys(groupedData).forEach(olt => {
+                const uniqueOntsInOlt = new Set();
+                groupedData[olt].forEach(row => {
+                    uniqueOntsInOlt.add(row['ONT']);
+                });
+                totalUniqueOnts += uniqueOntsInOlt.size;
+                // For global count, add all to a single set
+                uniqueOntsInOlt.forEach(ont => allUniqueOnts.add(ont));
+            });
+
+            config += `! ${configTitle} Configuration - Generated ${new Date().toLocaleString()}\n`;
+            config += `! Total OLTs: ${Object.keys(groupedData).length}\n`;
+            config += `! Total Unique ONTs Across All OLTs: ${allUniqueOnts.size}\n\n`; // Use the global unique count
+
+            if (defaultLineProfile) {
+                config += `! Using Global Default Line Profile ID: ${defaultLineProfile}\n`;
+            }
+            if (defaultServiceProfile) {
+                config += `! Using Global Default Service Profile ID: ${defaultServiceProfile}\n`;
+            }
+            config += `!\n`;
+
+            // Group data by OLT and then by ONT within each OLT for description generation
+            const ontGroupsByOlt = {};
+            Object.keys(groupedData).sort().forEach(olt => {
+                ontGroupsByOlt[olt] = {};
+                groupedData[olt].forEach(row => {
+                    const ont = row['ONT'];
+                    if (!ontGroupsByOlt[olt][ont]) {
+                        ontGroupsByOlt[olt][ont] = [];
+                    }
+                    ontGroupsByOlt[olt][ont].push(row);
+                });
+            });
+
+
+            Object.keys(groupedData).sort().forEach(olt => {
+                // Calculate unique ONTs for this specific OLT for the comment
+                const uniqueOntsInCurrentOlt = new Set();
+                let totalIngressBandwidthK = 0; // Initialize sum for ingress bandwidth
+                let totalEgressBandwidthK = 0;   // Initialize sum for egress bandwidth
+
+                groupedData[olt].forEach(row => {
+                    uniqueOntsInCurrentOlt.add(row['ONT']);
+                    
+                    // Sum Ingress Bandwidth
+                    const ingressValue = row['Ingress'];
+                    if (ingressValue && String(ingressValue).trim() !== '-') {
+                        const normalizedIngress = normalizeBandwidth(ingressValue);
+                        const ingressInK = parseInt(normalizedIngress.replace('K', ''));
+                        if (!isNaN(ingressInK)) {
+                            totalIngressBandwidthK += ingressInK;
+                        }
+                    }
+
+                    // Sum Egress Bandwidth
+                    const egressValue = row['Egress'];
+                    if (egressValue && String(egressValue).trim() !== '-') {
+                        const normalizedEgress = normalizeBandwidth(egressValue);
+                        const egressInK = parseInt(normalizedEgress.replace('K', ''));
+                        if (!isNaN(egressInK)) {
+                            totalEgressBandwidthK += egressInK;
+                        }
+                    }
+                });
+
+                config += `! OLT: ${olt}\n`;
+                config += `!   Total Unique ONTs: ${uniqueOntsInCurrentOlt.size}\n`;
+                config += `!   Total Service IDs: ${groupedData[olt].length}\n`; // Total rows for this OLT
+                config += `!   Total Ingress Bandwidth: ${formatBandwidthForDisplay(totalIngressBandwidthK)}\n`; // Display sum
+                config += `!   Total Egress Bandwidth: ${formatBandwidthForDisplay(totalEgressBandwidthK)}\n`;   // Display sum
+                config += `! ==========================================\n`;
+                
+                config += `int gpon-olt ${olt}\n`; // Start OLT interface block
+                
+                const vlanMappings = new Set();
+                const trunkVlans = new Set();
+                const untaggedVlansForOlt = new Set(); // NEW SET FOR UNTAGGED VLANS AT OLT INTERFACE LEVEL
+
+                groupedData[olt].forEach(row => {
+                    const ont = row['ONT'];
+                    const snModem = row['SN Modem'];
+                    const cvlan = row['CVLAN'];
+                    const svlan = row['SVLAN'];
+                    // const mode = row['Mode'] ? String(row['Mode']).toLowerCase() : ''; // Mode is not used for untagged VLAN condition now
+                    
+                    const lineProfile = defaultLineProfile;
+                    const serviceProfile = defaultServiceProfile;
+
+                    config += `  create gpon-onu ${ont} sn ${snModem} line-profile-id ${lineProfile} service-profile-id ${serviceProfile}`;
+                    if (configType === 'xgspon') {
+                        config += ` onu_type gpon`; // As per user's example for XGSPON
+                    }
+                    config += `\n`;
+
+                    // Collect VLANs for later processing per OLT
+                    if (cvlan) {
+                        if (svlan && String(svlan).trim() !== '-' && String(svlan).trim() !== '') {
+                            vlanMappings.add(`vlan-mapping ingress outer ${cvlan} translate outer ${svlan} inner copy-from-outer`);
+                            trunkVlans.add(svlan); 
+                            untaggedVlansForOlt.add(svlan); // MODIFIED: Add SVLAN to untagged list regardless of mode
+                        } else {
+                            trunkVlans.add(cvlan);
+                        }
+                    }
+                });
+
+                // Add collected VLAN commands directly after create gpon-onu commands
+                if (vlanMappings.size > 0) {
+                    Array.from(vlanMappings).sort().forEach(mapping => {
+                        config += `  ${mapping}\n`;
+                    });
+                }
+
+                if (trunkVlans.size > 0) {
+                    const sortedTrunkVlans = Array.from(trunkVlans).sort((a, b) => parseInt(a) - parseInt(b)).join(',');
+                    config += `  switchport trunk allowed vlan add ${sortedTrunkVlans}\n`;
+                }
+
+                // NEW: Add switchport trunk untagged vlan command
+                if (untaggedVlansForOlt.size > 0) {
+                    const sortedUntaggedVlans = Array.from(untaggedVlansForOlt).sort((a, b) => parseInt(a) - parseInt(b)).join(',');
+                    config += `  switchport trunk untagged vlan add ${sortedUntaggedVlans}\n`;
+                }
+
+                config += `quit\n\n`; // End OLT interface block
+            });
+
+            // --- Add Port Service Configuration ---
+            config += `! Port Service Configuration\n`;
+            config += `! ==========================================\n\n`;
+
+            Object.keys(groupedData).sort().forEach(olt => {
+                groupedData[olt].forEach(row => {
+                    const ports = String(row['Port']).split(',').map(p => p.trim()).filter(p => p !== '');
+                    const customerName = row['Customer Name'];
+                    const serviceId = row['Service ID'];
+                    const ont = row['ONT'];
+                    const cvlan = row['CVLAN'];
+                    const mode = row['Mode'] ? String(row['Mode']).toLowerCase() : '';
+
+                    const ingressExcelValue = row['Ingress'];
+                    const egressExcelValue = row['Egress'];
+                    const ingressMatch = getLineProfileMatch(ingressExcelValue, serviceId, 'Ingress');
+                    const egressMatch = getLineProfileMatch(egressExcelValue, serviceId, 'Egress');
+                    
+                    // Generate port config for each individual port
+                    ports.forEach(port => {
+                        config += `! ${customerName} (${serviceId}) - OLT ${olt} ONT ${ont} Port ${port}\n`; // More detailed comment
+                        
+                        if (configType === 'gpon') {
+                            config += `gpon-onu uni ethernet ${olt}/${ont}/${port}\n`;
+                            if (ingressMatch.id && ingressMatch.id !== '-') {
+                                config += `  policing-profile ingress ${ingressMatch.id}\n`;
+                            }
+                            if (egressMatch.id && egressMatch.id !== '-') {
+                                config += `  policing-profile egress ${egressMatch.id}\n`;
+                            }
+                        } else { // xgspon
+                            config += `gpon-onu uni ethernet ${olt}/${ont}/${port}\n`;
+                            if (ingressMatch.name && ingressMatch.name !== '-') {
+                                config += `  policing-profile-name ingress ${ingressMatch.name}\n`;
+                            }
+                            if (egressMatch.name && egressMatch.name !== '-') {
+                                config += `  policing-profile-name egress ${egressMatch.name}\n`;
+                            }
+                        }
+
+                        if (mode === 'access') {
+                            config += `  vlan mode tagged\n`;
+                            if (cvlan && cvlan !== '-') { // Only add native vlan if CVLAN exists
+                                config += `  native vlan ${cvlan}\n`;
+                            }
+                        } else if (mode === 'trunk') {
+                            config += `  vlan mode trunk\n`;
+                            if (cvlan && cvlan !== '-') { // Only add trunk allowed vlan if CVLAN exists
+                                config += `  vlan trunk allowed ${cvlan}\n`;
+                            }
+                        }
+                        config += `quit\n`; // Quit from gpon-onu uni ethernet block
+                        config += `\n`; // New line for separation between ports
+                    });
+                });
+            });
+
+            // --- Add ONT Description Configuration (NEW) ---
+            config += `! ONT Description Configuration\n`;
+            config += `! ==========================================\n\n`;
+
+            Object.keys(ontGroupsByOlt).sort().forEach(olt => {
+                Object.keys(ontGroupsByOlt[olt]).sort((a, b) => parseInt(a) - parseInt(b)).forEach(ont => {
+                    const servicesForOnt = ontGroupsByOlt[olt][ont];
+                    let description = '';
+
+                    if (servicesForOnt.length === 1) {
+                        // Single Service ID for this ONT
+                        const singleService = servicesForOnt[0];
+                        const serviceId = String(singleService['Service ID'] || '').trim();
+                        const customerName = String(singleService['Customer Name'] || '').trim();
+                        description = `${serviceId}-${customerName}`; 
+                    } else {
+                        // Multiple Service IDs for this ONT
+                        // Sort services by the minimum port number associated with them for consistent ordering
+                        servicesForOnt.sort((a, b) => {
+                            const portsA = String(a['Port'] || '').split(',').map(Number).filter(n => !isNaN(n));
+                            const portsB = String(b['Port'] || '').split(',').map(Number).filter(n => !isNaN(n));
+                            const minPortA = portsA.length > 0 ? Math.min(...portsA) : Infinity;
+                            const minPortB = portsB.length > 0 ? Math.min(...portsB) : Infinity;
+                            return minPortA - minPortB;
+                        });
+
+                        const primaryService = servicesForOnt[0];
+                        const primaryServiceId = String(primaryService['Service ID'] || '').trim();
+                        const primaryCustomerName = String(primaryService['Customer Name'] || '').trim();
+                        
+                        // Start with the first service's ID and customer name
+                        description = `${primaryServiceId}-${primaryCustomerName}`;
+
+                        // Add subsequent service IDs with _ separator after a -
+                        const otherServiceIds = [];
+                        for (let i = 1; i < servicesForOnt.length; i++) {
+                            const sId = String(servicesForOnt[i]['Service ID'] || '').trim();
+                            if (sId) {
+                               otherServiceIds.push(sId);
+                            }
+                        }
+
+                        if (otherServiceIds.length > 0) {
+                            description += `-${otherServiceIds.join('_')}`;
+                        }
+                    }
+
+                    // Final sanitization for CLI description field
+					description = description.replace(/\s+/g, '_') // Replace spaces with underscores
+
+					// Keep first hyphen, replace subsequent hyphens with underscores
+					let firstHyphenIndex = description.indexOf('-');
+					if (firstHyphenIndex !== -1) {
+						let beforeFirstHyphen = description.substring(0, firstHyphenIndex + 1);
+						let afterFirstHyphen = description.substring(firstHyphenIndex + 1);
+						description = beforeFirstHyphen + afterFirstHyphen.replace(/-/g, '_');
+					}
+
+					description = description.replace(/_{2,}/g, '_') // Replace multiple underscores with single
+											.replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+
+                    // Limit description length to a common CLI maximum (e.g., 63 characters for some devices)
+                    if (description.length > 63) { 
+                        description = description.substring(0, 63);
+                    }
+
+                    config += `int gpon-onu ${olt}/${ont}\n`;
+                    config += `  description ${description}\n`;
+                    config += `quit\n\n`;
+                });
+            });
+
+            return config;
+        }
+
+        function copyConfig() {
+            const configContent = document.getElementById('configContent').textContent;
+            navigator.clipboard.writeText(configContent).then(() => {
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // New function to export config as TXT file
+        function exportConfigAsTxt() {
+            const configContent = document.getElementById('configContent').textContent;
+            const filename = `gpon_config_${new Date().toISOString().slice(0,10)}.txt`; // e.g., gpon_config_2023-10-27.txt
+            
+            const blob = new Blob([configContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a); // Append to body is required for Firefox
+            a.click();
+            document.body.removeChild(a); // Clean up
+            URL.revokeObjectURL(url); // Release the object URL
+        }
+    </script>
+</body>
+</html>

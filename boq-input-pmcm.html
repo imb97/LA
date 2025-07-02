@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Data BOQ - PM CM</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* General Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8faff; /* Sangat terang, mendekati putih bersih dengan sedikit hint biru */
+            min-height: 100vh;
+            padding: 20px;
+            color: #343a40; /* Darker grey for better text contrast */
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .header {
+            background-color: #5d7aa7; /* Biru soft yang lebih jelas */
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+            font-weight: 400;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95em;
+        }
+        
+        /* Main Content & Sections */
+        .main-content {
+            padding: 25px;
+            flex-grow: 1;
+        }
+        
+        .form-section {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef; /* Light grey border */
+        }
+        
+        h2, h3 {
+            color: #4a699c; /* Sedikit lebih gelap dari header biru */
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 1.3em;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #555;
+            font-size: 0.9em;
+        }
+        
+        input[type="text"], input[type="number"], select {
+            padding: 10px 12px;
+            border: 1px solid #c9d6e4; /* Soft greyish blue border */
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #343a40; /* Ensure input text is clear */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background-color: #fcfdfe; /* Almost white */
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #5d7aa7; /* Warna biru fokus */
+            box-shadow: 0 0 0 2px rgba(93, 122, 167, 0.2); /* Shadow yang lebih soft */
+        }
+        
+		/* Item Rows */
+        .items-section {
+            margin-top: 20px;
+        }
+        
+        .item-row {
+            display: grid;
+            /* Sesuaikan grid-template-columns. Kolom terakhir lebih kecil untuk 'X' */
+            grid-template-columns: 3fr 1fr 1fr 25px; /* Lebar kolom untuk 'X' */
+            gap: 15px;
+            align-items: center; /* Pastikan semua item sejajar di tengah secara vertikal */
+            margin-bottom: 12px;
+            padding: 12px;
+            background: #fdfdfd;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            transition: border-color 0.2s ease;
+        }
+        
+        .item-row:hover {
+            border-color: #b3cce6; /* Lighter soft blue on hover */
+        }
+        
+        .item-dropdown {
+            /* No specific width needed, will adapt */
+        }
+
+        /* Searchable Dropdown Styles - pastikan ini tetap ada jika Anda sudah pakai searchable input */
+        .searchable-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #c9d6e4;
+            border-radius: 5px;
+            font-size: 0.9em;
+            background-color: #fcfdfe;
+            color: #343a40; /* Ensure searchable input text is clear */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .searchable-input:focus {
+            outline: none;
+            border-color: #5d7aa7;
+            box-shadow: 0 0 0 2px rgba(93, 122, 167, 0.2);
+        }
+
+        .value-input {
+            text-align: right;
+        }
+        
+        /* Gaya untuk teks 'X' sebagai tombol hapus */
+        .remove-text {
+            color: #dc3545; /* Merah */
+            font-weight: bold; /* Tebal */
+            font-size: 1.2em; /* Ukuran yang pas */
+            cursor: pointer; /* Menandakan ini bisa diklik */
+            text-align: center; /* Pusatkan 'X' secara horizontal */
+            display: flex; /* Untuk pusatkan vertikal */
+            align-items: center; /* Pusatkan vertikal */
+            justify-content: center; /* Pusatkan horizontal */
+            height: 100%; /* Agar 'X' bisa di tengah div */
+            transition: opacity 0.2s ease;
+        }
+        
+        .remove-text:hover {
+            opacity: 0.7; /* Sedikit memudar saat hover */
+        }
+        
+        .add-item-btn {
+            background-color: #28a745; /* Green */
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 15px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .add-item-btn:hover {
+            background-color: #218838;
+        }
+        
+        .add-item-btn {
+            background-color: #28a745; /* Green */
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 15px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .add-item-btn:hover {
+            background-color: #218838;
+        }
+        
+        /* Buttons */
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            min-width: 120px;
+        }
+        
+        .btn-primary {
+            background-color: #5d7aa7; /* Biru soft yang konsisten */
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: #28a745; /* Green */
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d; /* Grey */
+            color: white;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        /* Data Table */
+        .data-table {
+            margin-top: 25px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            background-color: #4a699c; /* Darker soft blue untuk header tabel */
+            color: white;
+            padding: 15px;
+            font-weight: 500;
+            font-size: 1em;
+        }
+        
+        .table-content {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 0 15px 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9edf2; /* Very light greyish blue border */
+            font-size: 0.9em;
+        }
+        
+        th {
+            background-color: #f4f7fa; /* Lighter background for header */
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        tr:hover {
+            background-color: #f9fbff; /* Very light blue on hover */
+        }
+        
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background-color 0.2s ease;
+        }
+        
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        
+        /* Summary Cards */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            padding: 0 15px;
+        }
+        
+        .summary-card {
+            background-color: #5d7aa7; /* Biru soft konsisten */
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .summary-card h3 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .summary-card p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+        
+        .no-items {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 20px;
+            border: 1px dashed #ced4da;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .item-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            button {
+                min-width: unset;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Input Data BOQ PM CM</h1>
+        </div>
+        
+        <div class="main-content">
+            <div class="form-section">
+                <h2>Input Data Pekerjaan</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="taskId">Task ID:</label>
+                        <input type="text" id="taskId" placeholder="Contoh: TWF000079554411">
+                    </div>
+                    <div class="form-group">
+                        <label for="action">Action (Deskripsi Pekerjaan):</label>
+                        <input type="text" id="action" placeholder="Contoh: Penarikan dan Terminasi FO">
+                    </div>
+                </div>
+                
+                <div class="items-section">
+                    <h3>Pilih Item Pekerjaan & Input Nilai</h3>
+                    <button type="button" class="add-item-btn" onclick="addItemRow()">+ Tambah Item</button>
+                    
+                    <div id="itemRows">
+                        <div class="no-items">Klik "Tambah Item" untuk mulai menambahkan item pekerjaan</div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button type="button" class="btn-primary" onclick="addCurrentData()">Tambah Data</button>
+                    <button type="button" class="btn-secondary" onclick="clearForm()">Clear Form</button>
+                    <button type="button" class="btn-success" onclick="exportToExcel()">Export ke Excel</button>
+                </div>
+            </div>
+            
+            <div class="data-table">
+                <div class="table-header">
+                    Data BOQ yang Telah Diinput
+                </div>
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <h3 id="totalTasks">0</h3>
+                        <p>Total Tasks</p>
+                    </div>
+                    <div class="summary-card">
+                        <h3 id="totalItems">0</h3>
+                        <p>Total Items Used</p>
+                    </div>
+                </div>
+                <div class="table-content">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>Task ID</th>
+                                <th>Action</th>
+                                <th>Items Used</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let boqData = [];
+        let itemRowCounter = 0;
+        
+        // Sample item pekerjaan data (Anda bisa menggantinya dengan data real)
+        const itemPekerjaan = [
+            { id: 1, description: "Pengadaan dan pemasangan Kabel ADSS Fiber Optik Single Mode 12 core G 652 D pada duct / tanam" },
+            { id: 2, description: "Pengadaan dan pemasangan Kabel ADSS Fiber Optik Single Mode 24 core G 652 D pada duct / tanam" },
+            { id: 3, description: "Pengadaan dan pemasangan Kabel ADSS Fiber Optik Single Mode 48 core G 652 D pada duct / tanam" },
+            { id: 4, description: "Pengadaan dan pemasangan Kabel ADSS Fiber Optik Single Mode 96 core G 652 D pada duct / tanam" },
+            { id: 5, description: "Pengadaan dan pemasangan Kabel Udara Fiber Optik Single Mode 2 (dua) core G652D Drop Core" },
+            { id: 6, description: "Pengadaan dan pemasangan Kabel Udara Fiber Optik Single Mode 4 (empat) core G652D Drop Core" },
+            { id: 7, description: "Pengadaan dan pemasangan Kabel Udara Fiber Optik Single Mode 1 (satu) core G652D Drop Core" },
+            { id: 8, description: "Pengadaan dan pemasangan Kabel Udara Fiber Optik Single Mode 12 Core G 652 D (ADSS)" },
+            { id: 9, description: "Pengadaan dan pemasangan Kabel Udara Fiber Optik Single Mode 24 Core G 652 D (ADSS)" },
+            { id: 10, description: "Pengadaan dan pemasangan Kabel Udara Fiber Optik Single Mode 48 Core G652D (ADSS)" },
+            { id: 11, description: "Pengadaan dan pemasangan Kabel Udara Fiber Optik Single Mode 96 Core G652D (ADSS)" },
+            { id: 12, description: "Pembongkaran Kabel Udara Fiber 12-96 Core ADSS / Aerial" },
+            { id: 13, description: "Pekerjaan Pengukuran Dengan OTDR" },
+            { id: 14, description: "Pekerjaan Cut Over Kabel Serat Optik" },
+            { id: 15, description: "Penyambungan Kabel Optik Single Mode kap 1 core dengan cara fusion splice" },
+            { id: 16, description: "Pengadaan dan pemasangan alat sambung / Joint Closure untuk Fiber Optik kapasitas 12 core merk PAZ atau setara (Inculde accessories dan Exclude Splicing)" },
+            { id: 17, description: "Pengadaan dan pemasangan alat sambung / Joint Closure untuk Fiber Optik kapasitas 24 core merk PAZ atau setara (Inculde accessories dan Exclude Splicing)" },
+            { id: 18, description: "Pengadaan dan pemasangan alat sambung / Joint Closure untuk Fiber Optik kapasitas 48 core merk PAZ atau setara (Inculde accessories dan Exclude Splicing)" },
+            { id: 19, description: "Pengadaan dan pemasangan alat sambung / Joint Closure untuk Fiber Optik kapasitas 96 core merk PAZ atau setara (Inculde accessories dan Exclude Splicing)" },
+            { id: 20, description: "Pengadaan dan pemasangan ODC-Pole (Outdoor)  Merk PAZ dengan space untuk spliter modular termasuk material adaptor LC  kap 144 core, berikut pelabelan (exclude biaya splice)" },
+            { id: 21, description: "Pengadaan dan pemasangan  kabinet ODC (Outdoor) Merk PAZ kap 144 core, 12 Base Tray dengan space untuk spliter modular termasuk material adaptor LC UPC, pigtail, pondasi berlapis keramik, lantai kerja keramik, patok pengaman (5 buah), berikut pelabelan" },
+            { id: 22, description: "Pengadaan dan pemasangan kabinet ODC (Outdoor) Merk PAZ kap 288 core, 24 Base Tray dengan space untuk spliter modular termasuk material adaptor LC UPC, pigtail, pondasi berlapis keramik, lantai kerja keramik, patok pengaman (5 buah), berikut pelabelan" },
+            { id: 23, description: "Pengadaan dan pemasangan Base Tray 12 port  merk PAZ untuk ODC beserta adapter LC 24 core dan Pigtail (Exclude Splicing)" },
+            { id: 24, description: "Pengadaan dan pemasangan adapter merk PAZ LC beserta Pigtail" },
+            { id: 25, description: "Pengaman ODC 144 (Besi siku 4cmx4cmx4mm, besi beton 10mm (jarak antar besi beton 10cm, engsel besar, baut ram set 14mm dan kunci gembok 50mm" },
+            { id: 26, description: "Pengaman ODC 288 (Besi siku 4cmx4cmx4mm, besi beton 10mm (jarak antar besi beton 10cm, engsel besar, baut ram set 14mm dan kunci gembok 50mm" },
+            { id: 27, description: "Akuisisi Lahan SITAC ODC" },
+            { id: 28, description: "Pengadaan dan Pemasangan OTB kap 12 core rack mount serta Adapter (SC/LC Connector), pigtail dan protection sleeve pada cassette/box (Exclude Jasa Splice)" },
+            { id: 29, description: "Pengadaan dan Pemasangan OTB kap 24 core rack mount serta Adapter (SC/LC Connector), pigtail dan protection sleeve pada cassette/box (Exclude Jasa Splice)" },
+            { id: 30, description: "Pengadaan dan Pemasangan OTB  Single mode kap 48 core serta Adapter (SC/LC Connector), pigtail dan protection sleeve pada cassette/box ()Exclude Jasa Splice" },
+            { id: 31, description: "Pengadaan dan Pemasangan OTB Single mode kap 96 core serta Adapter (SC/LC Connector), pigtail dan protection sleeve pada cassette/box (Exclude Jasa Splice)" },
+            { id: 32, description: "Pengadaan dan pemasangan  Passive Splitter 1:8, type modular SC/UPC, for ODC, termasuk pigtail merk PAZ" },
+            { id: 33, description: "Pengadaan dan pemasangan  Passive Splitter 1:8, type PLC SC/UPC, for ODP, termasuk pigtail" },
+            { id: 34, description: "Pengadaan dan pemasangan  Passive Splitter 1:16, type modular SC/UPC, for ODC, termasuk pigtail" },
+            { id: 35, description: "Pengadaan dan pemasangan  Passive Splitter 1:16, type PLC SC/UPC, for ODP, termasuk pigtail merk PAZ" },
+            { id: 36, description: "Pengadaan dan pemasangan ODP Merk PAZ  type tiang Kap 8 core berikut space pasive spliter (1:8), adapter SC,berikut pelabelan" },
+            { id: 37, description: "Pengadaan dan pemasangan ODP Merk PAZ type tiang Kap 16 core berikut space pasive spliter (1:16), adapter SC,berikut pelabelan" },
+            { id: 38, description: "Pengadaan dan pemasangan ODP (Pilar/Pedestal) kap  8 core termasuk pigtail, berikut space  1 splitter (2:8) dan pelabelan" },
+            { id: 39, description: "Pengadaan dan pemasangan ODP (Pilar/Pedestal) kap  16 core termasuk pigtail, berikut space  1 splitter (2:16) dan pelabelan" },
+            { id: 40, description: "Pekeriaan Pembuatan HH Pit Portable ODP / Pedestal beserta aksesorisnya" },
+            { id: 41, description: "Pengadaan dan pemasangan Patch cord 2 meter, (SIMPLEX FC/LC/SC-APC To FC/LC/SC-APC), G.652 D PAZ" },
+            { id: 42, description: "Pengadaan dan pemasangan  Patch cord 2 meter, (SIMPLEX PC/LC/SC-UPC To FC/LC/SC-UPC), G.652D PAZ" },
+            { id: 43, description: "Additional patch cord SIMPLEX, G.652D" },
+            { id: 44, description: "Pengadaan dan pemasangan Patch cord 2 meter, (DUPLEX FC/LC/SC-APC To FC/LC/SC-APC), G.652 D PAZ" },
+            { id: 45, description: "Pengadaan dan pemasangan  Patch cord 2 meter, (DUPLEX PC/LC/SC-UPC To FC/LC/SC-UPC), G.652D PAZ" },
+            { id: 46, description: "Additional patch cord DUPLEX, G.652D" },
+            { id: 47, description: "Pengadaan dan Pemasangan  Roset/lndoor Optical Outlet with SC Adaptor - kap 1 port untuk kabel DW berikut pigtail (Exclude Jasa Splice)" },
+            { id: 48, description: "Pengadaan dan Pemasangan  Roset/lndoor Optical Outlet with SC Adaptor - kap 2 port untuk kabel DW berikut pigtail (Exclude Jasa Splice)" },
+            { id: 49, description: "Pengadaan dan Pemasangan  Roset/lndoor Optical Outlet with SC Adaptor - kap 4 port untuk kabel ADSS berikut pigtail (Exclude Jasa Splice)" },
+            { id: 50, description: "Pengadaan dan Pemasangan  Roset/lndoor Optical Outlet with SC Adaptor - kap 8 port untuk kabel ADSS berikut pigtail (Exclude Jasa Splice)" },
+            { id: 51, description: "Pengadaan dan Pemasangan Tiang Besi 7 meter, berikut cat & cor pondasi dan assesories dengan kekuatan tarik 140 kg" },
+            { id: 52, description: "Pengadaan dan Pemasangan Tiang Besi 9 meter, berikut cat & cor dan assesories dengan kekuatan tarik 140 kg" },
+            { id: 53, description: "Pengadaan dan Pemasangan Temberang Tarik" },
+            { id: 54, description: "Pengadaan dan Pemasangan Asesoris tiang eksisting untuk kabel ADSS" },
+            { id: 55, description: "Pengadaan dan Pemasangan Tiang Beton 7 meter spek WIKA, berikut cor pondasi dan assesories" },
+            { id: 56, description: "Pengadaan dan Pemasangan Tiang Beton 9 meter spek WIKA, berikut cor pondasi dan assesories" },
+            { id: 57, description: "Biaya Pembongkaran Tiang Besi Ukuran 7 Meter" },
+            { id: 58, description: "Biaya Pembongkaran Tiang Besi Ukuran 9 Meter" },
+            { id: 59, description: "Biaya Pembongkaran Tiang Beton Ukuran 7 Meter" },
+            { id: 60, description: "Biaya Pembongkaran Tiang Beton Ukuran 9 Meter" },
+            { id: 61, description: "Biaya Relokasi (Pembongkaran dan pemasangan kembali, include pengecoran) Tiang Besi Ukuran 7 Meter" },
+            { id: 62, description: "Biaya Relokasi (Pembongkaran dan pemasangan kembali, include pengecoran) Tiang Besi ukuran 9 meter" },
+            { id: 63, description: "Pengadaan dan Pemasangan  Riser Pipe galvanis untuk pengaman kabel optik ke ODC Pole/ titik naik KU diamater 2 inch  panjang 3 meter" },
+            { id: 64, description: "Pengadaan dan Pemasangan Pipa PVC Conduit 20 mm" },
+            { id: 65, description: "Pengadaan dan Pemasangan Fleksibel  Conduit 20 mm" },
+            { id: 66, description: "Pengadaan dan pemasangan Pipa Besi Diameter  100 mm dan ketebalan pipa 3,65 mm untuk crossing 1 pipa  bentang < = 6 meter" },
+            { id: 67, description: "Pengadaan dan Pemasangan Pipa Duct PVC diameter dalam 100 mm, ketebalan 4 mm, 1 pipa termasuk pengecoran" },
+            { id: 68, description: "Pengadaan dan Pemasangan Pipa Duct dengan selubung pasir dia 100 mm dengan ketebalan 5,5 mm, 1 pipa ( crossing )" },
+            { id: 69, description: "Pengadaan dan pemasangan  pipa Duct menempel pada  jembatan (support existing) menggunakan Pipa Galvanis diamenter 2 inch,  tebal 1.8 mm, 1 pipa 6 mtr" },
+            { id: 70, description: "Pengadaan dan pemasangan  pipa Duct pada jembatan dengan self support berpenguatan menggunakan  Pipa Galvanis diamenter 2 inch,  tebal 1.8 mm, 1 pipa 6 mtr" },
+            { id: 71, description: "Pengadaan dan pemasangan pipa Duct  menempel di  jembatan menggunakan  Pipa Galvanis diamenter 2 inch,  tebal 1.8 mm, 1 pipa 6 mtr" },
+            { id: 72, description: "Pengadaan dan Pemasangan Accessories Tiang untuk kabel drop core (s-klem)" },
+            { id: 73, description: "Pengadaan dan Pemasangan 1 Subduct 28/32 mm pada polongan route Duct" },
+            { id: 74, description: "Pekerjaan Boring manual (rojok) HDPE  40/33 mm 1 pipa dengan kedalaman 1,5 meter" },
+            { id: 75, description: "Pengadaan dan pemasangan  pipa  HDPE  40/33 mm" },
+            { id: 76, description: "Pengkleman HDPE di dinding beton / Box Culvert dengan klem ketebalan 2mm lebar 2,5 cm menggunakan dynabolt termasuk rekondisi atau perbaikan kerusakan" },
+            { id: 77, description: "Pekerjaan Galian, Pengurugan kembali dan perbaikan kembali, pengisian pasir, warning tape dan tanda rute kabel serta tempat sambung kedalaman 0.4 meter" },
+            { id: 78, description: "Pekerjaan Galian, Pengurugan kembali dan perbaikan kembali, pengisian pasir, warning tape dan tanda rute kabel serta tempat sambung, kedalaman 0,6 meter" },
+            { id: 79, description: "Pekerjaan Galian, Pengurogan  kembali dan perbaikan kembali, pengisian pasir, warning tape dan tanda rote kabel serta tempat sambung, kedalaman  1 meter" },
+            { id: 80, description: "Pekerjaan Galian, Pengurugan kembali dan perbaikan kembali, pengisian pasir, warning tape dan tanda rute kabel serta tempat sambung, kedalaman 1,2 meter" },
+            { id: 81, description: "Pekerjaan Galian, Pengurugan  kembali dan perbaikan kembali, pengisian pasir, warning tape dan tanda rute kabel serta tempat sambung, kedalaman 1,3 meter" },
+            { id: 82, description: "Pekerjaan Galian, Pengurugan kembali dan perbaikan kembali, pengisian pasir, warning tape dan tanda rute kabel serta tempat sambung, kedalaman 1,4 meter" },
+            { id: 83, description: "Pekerjaan Galian, Pengurugan  kembali dan perbaikan kembali, pengisian pasir, warning tape dan tanda rote kabel serta tempat sambung kedalaman 1,5 meter" },
+            { id: 84, description: "Pengadaan galian batu masif kedalaman 1,5 meter, panjang minimum 5 m,  termasuk pengadaan marking post" },
+            { id: 85, description: "Pekerjaan Galian Pada Lahan Asphalt, Pengurugan kembali dan perbaikan kembali dengan Asphalt  pengisian pasir, warning tape dan tanda rute kabel serta tempat sambung kedalaman 0.4 meter" },
+            { id: 86, description: "Pekerjaan Galian Pada Lahan Paving, Pengurugan kembali dan perbaikan kembali, pengisian pasir, warning tape dan tanda rute kabel serta tempat sambung kedalaman 0.4 meter" },
+            { id: 87, description: "Penggalian dengan kondisi tanah Padas/Cadas termasuk pengurugan dan perbaikan kembali bekas galian dengan permukaan cor beton 1:2:3 (lebar30cm, ketebalan 40cm) dengan kedalaman minimal 80 cm" },
+            { id: 88, description: "Penggalian dengan kondisi tanah Padas/Cadas termasuk pengurugan dan perbaikan kembali bekas galian dengan kedalaman minimal 100 cm" },
+            { id: 89, description: "Penggalian dengan kondisi tanah Padas/Cadas termasuk pengurugan dv perbaikan kembali bekas galian dengan kedalaman minimal 120 cm" },
+            { id: 90, description: "Penggalian dengan kondisi tanah Padas/Cadas termasuk pengurugan dv perbaikan kembali bekas galian dengan kedalaman minimal 130 cm" },
+            { id: 91, description: "Penggalian dengan kondisi tanah Padas/Cadas termasuk pengurugan dv perbaikan kembali bekas galian dengan kedalaman  minimal 140 cm" },
+            { id: 92, description: "Penggalian dengan kondisi tanah Padas/Cadas termasuk pengurugan dv perbaikan kembali bekas galian dengan kedalaman minimal 150 cm" },
+            { id: 93, description: "Pengadaan dan Pemasangan Tiang Besi Galvanls 6m tanpa sambungan, berlkut cat dan cor pondesl (1:2:3) dengan kekuetan tank 35 kg" },
+            { id: 94, description: "Pengadaan dan Pemasangan Sistem Gantung pada tiang eksisting menggunaken kawat sling baja dan klem dua lubang" },
+            { id: 95, description: "Pekerjaan bobokan tembok untuk lubang sparing kabel" },
+            { id: 96, description: "Pekerjaan bobokan Box Culvert untuk lubang sparing kabel" },
+            { id: 97, description: "Pekerjaan bobokan dan perbaikan Dinding HH/ Chamber/ BTS untuk lubang Sparing Kabel" },
+            { id: 98, description: "Pembuatan Handhole ukuran dimensi bersih  P x L x T = 80cm x 80cm x 80cm cor beton Ketebalan dinding 15cm, ketebalan tutup 20cm Beton K225 tutup 2 pintu dengan tulisan LINTASARTA" },
+            { id: 99, description: "Pengadaan dan Pemasangan Slack pada tiang include sabuk/klem ukuran dimensi dalam (P x L = 80cm x 80cm)" },
+            { id: 100, description: "Pekeriaan Peninggian Tutup Manhole/Handhole" },
+            { id: 101, description: "Wire mesh cable tray 20 x 10 cm, dengan supporting material" },
+            { id: 102, description: "Wire mesh cable tray 30 x 10 cm, dengan supporting material" },
+            { id: 103, description: "Pekerjaan Plafon" },
+            { id: 104, description: "Pengadaan dan Pemasangan material Grounding di lokasi gedung eksisting dengan cara integrasi" },
+            { id: 105, description: "Biaya-biaya yang timbul dalam rangka untuk perizinan, kompensasi dan Supervisi dari Building Management HRB atau pengelola kawasan khusus atau lingkungan" },
+            { id: 106, description: "Biaya Mover Material  dari Outlet Lintasarta ke lokasi PSB atau Gangguan untuk 1 rit Pickup" },
+            { id: 107, description: " Additional Biaya Mover Material dari Outlet Lintasarta ke lokasi  PSB atau Gangguan untuk 1 rit Pickup" },
+            { id: 108, description: "Biaya - Biaya mover diluar transportasi darat yang timbul dalam rangka pengiriman material dari outlet LA ke lokasi pekerjaan (Tiket Kapal penyebrangan) menggunakan mekanisme reimbursment" },
+            { id: 109, description: "Biaya Survey lokasi  0 - 500 mtr dengan hasil berupa  KMZ, SPH, dokumentasi dan info perijinan (Include Transport)" },
+            { id: 110, description: "Biaya Survey lokasi 500 - 1000 mtr dengan hasil berupa  KMZ, SPH , dokumentasi dan info perijinan (Include Transport)" },
+            { id: 111, description: "Biaya Survey lokasi  > 1000 mtr dengan hasil berupa  KMZ, SPH, dokumentasi dan info perijinan (Include Transport)" },
+            { id: 112, description: "Buka tutup handhole" },
+            { id: 113, description: "Pasang/Replace/Cabut/aktivasi  Modem / ONT" },
+            { id: 114, description: "Slack Support dalam HH" },
+            { id: 115, description: "Biaya  transportasi (tanpa adanya biaya mover) <= 30 Km" },
+            { id: 116, description: "Penambahan Biaya  transportasi (tanpa adanya biaya mover) per 5Km" },
+            { id: 117, description: "Pekerjaan Pengecekan  Kelistrikan POP" },
+            { id: 118, description: "Pengkleman HDPE di dinding beton / Box Culvert dengan klem  ketebalan 2mm lebar 2,5 cm menggunakan paku termasuk rekondisi atau perbaikan kerusakan" },
+            { id: 119, description: "Perbaikan atau pemindahan kebel existing (diantara 2 tiang)" },
+            { id: 120, description: "Pengadaan dan Pemasangan Pipa galvanis conduit E19 dengan ukuran diameter  20 mm panjang  3,6M termasuk aksesoris pemasangan (klem dll)" },
+            { id: 121, description: "Penarikan HDPE di gorong gorong /  box culvert" },
+            { id: 122, description: "Instalasi VSAT Starlink" },
+            { id: 123, description: "Biaya-biaya yang timbul dalam rangka untuk perizinan jalur crossing dan atau sejajar jalur kereta api ke Dirjen Perketa Apian dan atau KAI" }
+        ];
+        
+        // Create a datalist for itemPekerjaan
+        function createDatalistOptions() {
+            const datalist = document.createElement('datalist');
+            datalist.id = 'itemPekerjaanList';
+            itemPekerjaan.forEach(item => {
+                const option = document.createElement('option');
+                option.value = `${item.id}. ${item.description}`;
+                datalist.appendChild(option);
+            });
+            document.body.appendChild(datalist); // Append to body or a suitable container
+        }
+
+        function addItemRow() {
+            itemRowCounter++;
+            const itemRows = document.getElementById('itemRows');
+            
+            // Remove no-items message
+            const noItemsMsg = itemRows.querySelector('.no-items');
+            if (noItemsMsg) {
+                noItemsMsg.remove();
+            }
+            
+            const itemRow = document.createElement('div');
+            itemRow.className = 'item-row';
+            itemRow.id = `item-row-${itemRowCounter}`;
+            
+            itemRow.innerHTML = `
+                <div class="form-group item-dropdown">
+                    <label>Item Pekerjaan:</label>
+                    <input type="text" list="itemPekerjaanList" id="item-${itemRowCounter}" class="searchable-input" placeholder="Ketik untuk mencari item...">
+                </div>
+                <div class="form-group">
+                    <label>Material:</label>
+                    <input type="number" id="material-${itemRowCounter}" class="value-input" min="0" step="0.01" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Jasa:</label>
+                    <input type="number" id="jasa-${itemRowCounter}" class="value-input" min="0" step="0.01" placeholder="0">
+                </div>
+				<div>
+                    <span class="remove-text" onclick="removeItemRow(${itemRowCounter})">X</span>
+                </div>
+            `;
+            
+            itemRows.appendChild(itemRow);
+        }
+        
+        function removeItemRow(rowId) {
+            const row = document.getElementById(`item-row-${rowId}`);
+            if (row) {
+                row.remove();
+            }
+            
+            // Check if no items left
+            const itemRows = document.getElementById('itemRows');
+            if (itemRows.children.length === 0) {
+                itemRows.innerHTML = '<div class="no-items">Klik "Tambah Item" untuk mulai menambahkan item pekerjaan</div>';
+            }
+        }
+        
+        function addCurrentData() {
+            const taskId = document.getElementById('taskId').value.trim();
+            const action = document.getElementById('action').value.trim();
+            
+            if (!taskId || !action) {
+                alert('Mohon isi Task ID dan Action terlebih dahulu!');
+                return;
+            }
+            
+            // Check if task ID already exists
+            if (boqData.some(item => item.TASK_ID === taskId)) {
+                alert('Task ID sudah ada! Gunakan Task ID yang berbeda.');
+                return;
+            }
+            
+            // Collect item data
+            const itemRows = document.querySelectorAll('.item-row');
+            if (itemRows.length === 0) {
+                alert('Mohon tambahkan minimal satu item pekerjaan!');
+                return;
+            }
+            
+            const newData = {
+                TASK_ID: taskId,
+                ACTION: action
+            };
+            
+            // Initialize all M.x and J.x columns as empty for all potential item IDs
+            const maxItemId = itemPekerjaan.reduce((max, item) => Math.max(max, item.id), 0);
+            for (let i = 1; i <= maxItemId; i++) {
+                newData[`M.${i}`] = '';
+                newData[`J.${i}`] = '';
+            }
+            
+            let hasValidItem = false;
+            
+            itemRows.forEach(row => {
+                const rowId = row.id.split('-')[2];
+                const itemInput = document.getElementById(`item-${rowId}`);
+                const materialInput = document.getElementById(`material-${rowId}`);
+                const jasaInput = document.getElementById(`jasa-${rowId}`);
+                
+                const fullItemDescription = itemInput.value.trim();
+                let itemId = null;
+
+                // Extract item ID from the full description (e.g., "123. Deskripsi Item")
+                const match = fullItemDescription.match(/^(\d+)\./);
+                if (match && match[1]) {
+                    const foundItem = itemPekerjaan.find(item => item.id === parseInt(match[1]));
+                    if (foundItem && fullItemDescription === `${foundItem.id}. ${foundItem.description}`) {
+                        itemId = foundItem.id;
+                    }
+                }
+
+                const materialValue = materialInput.value || '';
+                const jasaValue = jasaInput.value || '';
+                
+                if (itemId !== null && (materialValue !== '' || jasaValue !== '')) {
+                    newData[`M.${itemId}`] = materialValue;
+                    newData[`J.${itemId}`] = jasaValue;
+                    hasValidItem = true;
+                }
+            });
+            
+            if (!hasValidItem) {
+                alert('Mohon pilih item dari daftar dan isi nilai Material atau Jasa!');
+                return;
+            }
+            
+            boqData.push(newData);
+            updateTable();
+            clearForm();
+            alert('Data berhasil ditambahkan!');
+        }
+        
+        function updateTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            boqData.forEach((data, index) => {
+                const usedItems = [];
+                const maxItemId = itemPekerjaan.reduce((max, item) => Math.max(max, item.id), 0);
+                for (let i = 1; i <= maxItemId; i++) {
+                    if (data[`M.${i}`] !== '' || data[`J.${i}`] !== '') {
+                        const material = data[`M.${i}`] || '0';
+                        const jasa = data[`J.${i}`] || '0';
+                        const itemDescObj = itemPekerjaan.find(item => item.id === i);
+                        const itemDesc = itemDescObj ? itemDescObj.description : `Item ${i} (Tidak Ditemukan)`;
+                        usedItems.push(`${i}. ${itemDesc} (M:${material}, J:${jasa})`);
+                    }
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.TASK_ID}</td>
+                    <td>${data.ACTION}</td>
+                    <td>${usedItems.join('<br>')}</td>
+                    <td><button class="delete-btn" onclick="deleteData(${index})">Hapus</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Update summary
+            document.getElementById('totalTasks').textContent = boqData.length;
+            
+            let totalItemsUsed = 0;
+            boqData.forEach(data => {
+                const maxItemId = itemPekerjaan.reduce((max, item) => Math.max(max, item.id), 0);
+                for (let i = 1; i <= maxItemId; i++) {
+                    if (data[`M.${i}`] !== '' || data[`J.${i}`] !== '') {
+                        totalItemsUsed++;
+                    }
+                }
+            });
+            document.getElementById('totalItems').textContent = totalItemsUsed;
+        }
+        
+        function deleteData(index) {
+            if (confirm('Yakin ingin menghapus data ini?')) {
+                boqData.splice(index, 1);
+                updateTable();
+            }
+        }
+        
+        function clearForm() {
+            document.getElementById('taskId').value = '';
+            document.getElementById('action').value = '';
+            
+            const itemRows = document.getElementById('itemRows');
+            itemRows.innerHTML = '<div class="no-items">Klik "Tambah Item" untuk mulai menambahkan item pekerjaan</div>';
+            itemRowCounter = 0;
+        }
+        
+        function exportToExcel() {
+            if (boqData.length === 0) {
+                alert('Tidak ada data untuk di-export!');
+                return;
+            }
+            
+            const maxItemId = itemPekerjaan.reduce((max, item) => Math.max(max, item.id), 0);
+
+            const headers = ['TASK_ID', 'ACTION'];
+            for (let i = 1; i <= maxItemId; i++) {
+                headers.push(`M.${i}`, `J.${i}`);
+            }
+            
+            const exportData = [headers];
+            
+            boqData.forEach(data => {
+                const row = [data.TASK_ID, data.ACTION];
+                for (let i = 1; i <= maxItemId; i++) {
+                    row.push(data[`M.${i}`] || '');
+                    row.push(data[`J.${i}`] || '');
+                }
+                exportData.push(row);
+            });
+            
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(exportData);
+            
+            XLSX.utils.book_append_sheet(wb, ws, 'BOQ Data');
+            
+            const now = new Date();
+            const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-').replace('T', '_');
+            const filename = `BOQ_Data_${timestamp}.xlsx`;
+            
+            XLSX.writeFile(wb, filename);
+        }
+        
+        window.onload = function() {
+            createDatalistOptions();
+        };
+    </script>
+</body>
+</html>
