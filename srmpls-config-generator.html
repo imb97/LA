@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huawei EVPL Configuration Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-tabs {
+            display: flex;
+            border-bottom: 1px solid #e1e1e1;
+            margin-bottom: 30px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: #2c3e50;
+            border-bottom-color: #3498db;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 25px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .file-drop {
+            border: 2px dashed #ddd;
+            border-radius: 6px;
+            padding: 40px 20px;
+            text-align: center;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-drop:hover,
+        .file-drop.dragover {
+            border-color: #3498db;
+            background: #f0f8ff;
+        }
+
+        .file-drop input {
+            display: none;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .entries {
+            margin: 20px 0;
+        }
+
+        .entry {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .entry-header {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .entry-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .entry-detail {
+            color: #666;
+        }
+
+        .entry-detail strong {
+            color: #333;
+        }
+
+        .remove-entry {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .output {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .output.show {
+            display: block;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .output-content {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 4px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .banner-info {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Huawei EVPL Configuration Generator</h1>
+        </div>
+        
+        <div class="content">
+            <!-- Banner Info -->
+            <div class="banner-info">
+                <strong>📝 Note:</strong> Gunakan aplikasi <strong><a href="https://guci/">Guci</a></strong> untuk generate RD dan EVPL.
+            </div>
+
+            <!-- Tabs -->
+            <div class="input-tabs">
+                <button class="tab-btn active" onclick="switchTab('manual')">Manual Input</button>
+                <button class="tab-btn" onclick="switchTab('excel')">Import Excel</button>
+            </div>
+
+            <!-- Alert -->
+            <div id="alert" class="alert"></div>
+
+            <!-- Manual Input -->
+            <div id="manual-tab" class="tab-content active">
+                <form id="manual-form">
+                    <div class="section-title">Origin Backhaul Configuration</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Customer Name Backhaul</label>
+                            <input type="text" id="customerNameBackhaul" maxlength=20 title="max 20 characters" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Interface Backhaul</label>
+                            <input type="text" id="interfaceBackhaul" placeholder="e.g. 25GE0/5/25" required>
+                        </div>
+                        <div class="form-group">
+                            <label>VLAN Backhaul (Optional)</label>
+                            <input type="number" id="vlanBackhaul" title="leave blank if access mode">
+                        </div>
+                        <div class="form-group">
+                            <label>Origin Backhaul SID</label>
+                            <input type="text" id="originSid" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Origin Backhaul RD</label>
+                            <input type="text" id="originRd" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Origin Backhaul EVPL</label>
+                            <input type="text" id="originEvpl" required>
+                        </div>
+                    </div>
+                    
+                    <div class="section-title">Destination Remote Configuration</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Customer Name Remote</label>
+                            <input type="text" id="customerNameRemote" maxlength=20 title="max 20 characters" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Interface Remote</label>
+                            <input type="text" id="interfaceRemote" placeholder="e.g. 25GE0/5/25" required>
+                        </div>
+                        <div class="form-group">
+                            <label>VLAN Remote (Optional)</label>
+                            <input type="number" id="vlanRemote" title="leave blank if access mode">
+                        </div>
+                        <div class="form-group">
+                            <label>Destination Remote SID</label>
+                            <input type="text" id="destSid" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Destination Remote RD</label>
+                            <input type="text" id="destRd" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Destination Remote EVPL</label>
+                            <input type="text" id="destEvpl" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Excel Import -->
+            <div id="excel-tab" class="tab-content">
+                <p style="margin-bottom: 20px; color: #666; font-size: 0.9rem;">
+                    <strong>Required columns:</strong> Customer Name Backhaul, Origin Backhaul SID, Origin Backhaul RD, Origin Backhaul EVPL, Interface Backhaul, Customer Name Remote, Destination Remote SID, Destination Remote RD, Destination Remote EVPL, Interface Remote<br>
+                    <strong>Optional:</strong> VLAN Backhaul, VLAN Remote<br>
+					<strong>Example Template:</strong> <a target="_blank" href="https://lintasarta-my.sharepoint.com/:x:/g/personal/iqbal_musthofa_lintasarta_co_id/ESuv6pDyPwNLroSd0DCkhPQBjW_eqUGSBDkD-21vtAAFTQ?e=IRAVF7">Click here</a>
+                </p>
+                <div class="file-drop" onclick="document.getElementById('excel-file').click()">
+                    <div>📊</div>
+                    <div><strong>Click to upload</strong> or drag Excel file here</div>
+                    <small>Supports .xlsx, .xls files</small>
+                    <input type="file" id="excel-file" accept=".xlsx,.xls" onchange="handleExcelFile(this)">
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="buttons">
+                <button class="btn btn-primary" onclick="addEntry()" id="add-btn">Add Entry</button>
+                <button class="btn btn-primary" onclick="generateConfig()">Generate Config</button>
+                <button class="btn btn-secondary" onclick="clearAll()">Clear All</button>
+            </div>
+
+            <!-- Entries List -->
+            <div id="entries-list" class="entries"></div>
+
+            <!-- Output -->
+            <div id="output" class="output">
+                <div class="output-header">
+                    <h3>Generated Configuration</h3>
+                    <button class="btn btn-primary" onclick="downloadConfig()">Download</button>
+                </div>
+                <div id="output-content" class="output-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let entries = [];
+        let currentTab = 'manual';
+        let generatedConfig = '';
+
+        // Function to sanitize customer names by replacing spaces and hyphens with underscores
+        function sanitizeCustomerName(name) {
+            if (!name) return '';
+            return name.replace(/[\s-]/g, '_');
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tab + '-tab').classList.add('active');
+            
+            // Show/hide add button
+            document.getElementById('add-btn').style.display = tab === 'manual' ? 'inline-block' : 'none';
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert alert-${type} show`;
+            setTimeout(() => alert.classList.remove('show'), 4000);
+        }
+
+        function addEntry() {
+            const requiredFields = ['customerNameBackhaul', 'originSid', 'originRd', 'destRd', 'originEvpl', 'customerNameRemote', 'destSid', 'destEvpl', 'interfaceBackhaul', 'interfaceRemote'];
+            const missingFields = requiredFields.filter(field => !document.getElementById(field).value.trim());
+            
+            if (missingFields.length > 0) {
+                showAlert('Please fill in all required fields', 'error');
+                return;
+            }
+
+            const rawCustomerNameBackhaul = document.getElementById('customerNameBackhaul').value.trim();
+            const rawCustomerNameRemote = document.getElementById('customerNameRemote').value.trim();
+
+            const entry = {
+                customerNameBackhaul: sanitizeCustomerName(rawCustomerNameBackhaul).toUpperCase(),
+                originalCustomerNameBackhaul: rawCustomerNameBackhaul,
+                originSid: document.getElementById('originSid').value.trim(),
+                originRd: document.getElementById('originRd').value.trim(),
+                destRd: document.getElementById('destRd').value.trim(),
+                originEvpl: document.getElementById('originEvpl').value.trim(),
+                customerNameRemote: sanitizeCustomerName(rawCustomerNameRemote).toUpperCase(),
+                originalCustomerNameRemote: rawCustomerNameRemote,
+                destSid: document.getElementById('destSid').value.trim(),
+                destEvpl: document.getElementById('destEvpl').value.trim(),
+                interfaceBackhaul: document.getElementById('interfaceBackhaul').value.trim(),
+                interfaceRemote: document.getElementById('interfaceRemote').value.trim(),
+                vlanBackhaul: document.getElementById('vlanBackhaul').value.trim(),
+                vlanRemote: document.getElementById('vlanRemote').value.trim()
+            };
+
+            entries.push(entry);
+            document.getElementById('manual-form').reset();
+            updateEntriesList();
+            
+            // Show alert with name conversion info if names were changed
+            let alertMessage = `Entry added. Total: ${entries.length}`;
+            if (rawCustomerNameBackhaul !== entry.customerNameBackhaul) {
+                alertMessage += ` (Backhaul name: "${rawCustomerNameBackhaul}" → "${entry.customerNameBackhaul}")`;
+            }
+            if (rawCustomerNameRemote !== entry.customerNameRemote) {
+                alertMessage += ` (Remote name: "${rawCustomerNameRemote}" → "${entry.customerNameRemote}")`;
+            }
+            showAlert(alertMessage, 'success');
+        }
+
+        function removeEntry(index) {
+            entries.splice(index, 1);
+            updateEntriesList();
+            showAlert('Entry removed', 'success');
+        }
+
+        function updateEntriesList() {
+            const listEl = document.getElementById('entries-list');
+            
+            if (entries.length === 0) {
+                listEl.innerHTML = '';
+                return;
+            }
+
+            listEl.innerHTML = `
+                <h3>Entries (${entries.length})</h3>
+                ${entries.map((entry, index) => `
+                    <div class="entry">
+                        <button class="remove-entry" onclick="removeEntry(${index})">Remove</button>
+                        <div class="entry-header">${entry.customerNameBackhaul} ↔ ${entry.customerNameRemote}</div>
+                        <div class="entry-details">
+                            <div class="entry-detail"><strong>Origin:</strong> ${entry.originSid} (${entry.originRd})</div>
+                            <div class="entry-detail"><strong>Dest:</strong> ${entry.destSid} (${entry.destRd})</div>
+                            <div class="entry-detail"><strong>Interface B:</strong> ${entry.interfaceBackhaul}${entry.vlanBackhaul ? '.' + entry.vlanBackhaul : '.1'}</div>
+                            <div class="entry-detail"><strong>Interface R:</strong> ${entry.interfaceRemote}${entry.vlanRemote ? '.' + entry.vlanRemote : '.1'}</div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function handleExcelFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                    const requiredColumns = [
+                        'Customer Name Backhaul', 'Origin Backhaul SID', 'Origin Backhaul RD', 
+                        'Destination Remote RD', 'Origin Backhaul EVPL', 'Customer Name Remote',
+                        'Destination Remote SID', 'Destination Remote EVPL', 'Interface Backhaul', 'Interface Remote'
+                    ];
+
+                    if (jsonData.length === 0) {
+                        showAlert('Excel file is empty', 'error');
+                        return;
+                    }
+
+                    const firstRow = jsonData[0];
+                    const missingColumns = requiredColumns.filter(col => !(col in firstRow));
+                    
+                    if (missingColumns.length > 0) {
+                        showAlert(`Missing columns: ${missingColumns.join(', ')}`, 'error');
+                        return;
+                    }
+
+                    let nameConversions = [];
+                    entries = jsonData.map(row => {
+						let rawCustomerNameBackhaul = row['Customer Name Backhaul'] || '';
+                        let rawCustomerNameRemote = row['Customer Name Remote'] || '';
+
+                        // Batasi panjang karakter untuk Excel import
+                        if (rawCustomerNameBackhaul.length > 20) {
+                            rawCustomerNameBackhaul = rawCustomerNameBackhaul.substring(0, 20);
+                            showAlert(`Customer Name Backhaul truncated to 20 chars: "${row['Customer Name Backhaul']}" -> "${rawCustomerNameBackhaul}"`, 'error');
+                        }
+                        if (rawCustomerNameRemote.length > 20) {
+                            rawCustomerNameRemote = rawCustomerNameRemote.substring(0, 20);
+                            showAlert(`Customer Name Remote truncated to 20 chars: "${row['Customer Name Remote']}" -> "${rawCustomerNameRemote}"`, 'error');
+                        }
+
+                        const sanitizedBackhaul = sanitizeCustomerName(rawCustomerNameBackhaul).toUpperCase();
+                        const sanitizedRemote = sanitizeCustomerName(rawCustomerNameRemote).toUpperCase();
+
+                        // Track name conversions
+                        if (rawCustomerNameBackhaul !== sanitizedBackhaul) {
+                            nameConversions.push(`"${rawCustomerNameBackhaul}" → "${sanitizedBackhaul}"`);
+                        }
+                        if (rawCustomerNameRemote !== sanitizedRemote) {
+                            nameConversions.push(`"${rawCustomerNameRemote}" → "${sanitizedRemote}"`);
+                        }
+
+                        return {
+                            customerNameBackhaul: sanitizedBackhaul,
+                            originalCustomerNameBackhaul: rawCustomerNameBackhaul,
+                            originSid: row['Origin Backhaul SID'] || '',
+                            originRd: row['Origin Backhaul RD'] || '',
+                            destRd: row['Destination Remote RD'] || '',
+                            originEvpl: row['Origin Backhaul EVPL'] || '',
+                            customerNameRemote: sanitizedRemote,
+                            originalCustomerNameRemote: rawCustomerNameRemote,
+                            destSid: row['Destination Remote SID'] || '',
+                            destEvpl: row['Destination Remote EVPL'] || '',
+                            interfaceBackhaul: row['Interface Backhaul'] || '',
+                            interfaceRemote: row['Interface Remote'] || '',
+                            vlanBackhaul: (row['VLAN Backhaul'] && row['VLAN Backhaul'].toString().trim()) || '',
+                            vlanRemote: (row['VLAN Remote'] && row['VLAN Remote'].toString().trim()) || ''
+                        };
+                    });
+
+                    updateEntriesList();
+                    
+                    let alertMessage = `Imported ${entries.length} entries`;
+                    if (nameConversions.length > 0) {
+                        alertMessage += `. Customer names converted: ${nameConversions.slice(0, 3).join(', ')}`;
+                        if (nameConversions.length > 3) {
+                            alertMessage += ` and ${nameConversions.length - 3} more...`;
+                        }
+                    }
+                    showAlert(alertMessage, 'success');
+
+                } catch (error) {
+                    showAlert('Error reading Excel file', 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function generateConfig() {
+            if (entries.length === 0) {
+                showAlert('No entries to generate configuration', 'error');
+                return;
+            }
+
+            let config = '';
+            
+            entries.forEach((entry, index) => {
+                const backhaulVlan = entry.vlanBackhaul && entry.vlanBackhaul.toString().trim();
+                const backhaulInterface = backhaulVlan ? 
+                    `${entry.interfaceBackhaul}.${backhaulVlan}` : 
+                    `${entry.interfaceBackhaul}.1`;
+                const backhaulEncap = backhaulVlan ? 
+                    `encapsulation dot1q vid ${backhaulVlan}\nrewrite pop single` : 
+                    `encapsulation default`;
+
+                const remoteVlan = entry.vlanRemote && entry.vlanRemote.toString().trim();
+                const remoteInterface = remoteVlan ? 
+                    `${entry.interfaceRemote}.${remoteVlan}` : 
+                    `${entry.interfaceRemote}.1`;
+                const remoteEncap = remoteVlan ? 
+                    `encapsulation dot1q vid ${remoteVlan}\nrewrite pop single` : 
+                    `encapsulation default`;
+
+                config += `*** CONFIG BACKHAUL ***
+evpn vpn-instance ${entry.originSid}-${entry.customerNameBackhaul} vpws  
+route-dist ${entry.originRd}
+vpn-target ${entry.originRd} export
+vpn-target ${entry.destRd} import
+#
+evpl instance ${entry.originEvpl}
+evpn binding vpn-instance ${entry.originSid}-${entry.customerNameBackhaul}
+local ${entry.originEvpl} remote ${entry.destEvpl}
+#
+interface ${backhaulInterface} mode l2
+description ${entry.originSid}-${entry.customerNameBackhaul}
+mtu 9216
+${backhaulEncap}
+statistic enable mode multiple
+evpl instance ${entry.originEvpl}
+#
+
+*** CONFIG REMOTE ***
+evpn vpn-instance ${entry.destSid}-${entry.customerNameRemote} vpws
+route-dist ${entry.destRd}
+vpn-target ${entry.destRd} export
+vpn-target ${entry.originRd} import
+#
+evpl instance ${entry.destEvpl}
+evpn binding vpn-instance ${entry.destSid}-${entry.customerNameRemote}
+local ${entry.destEvpl} remote ${entry.originEvpl}
+#
+interface ${remoteInterface} mode l2
+description ${entry.destSid}-${entry.customerNameRemote}
+mtu 9216
+${remoteEncap}
+statistic enable mode multiple
+evpl instance ${entry.destEvpl}
+#
+
+==============================================
+
+`;
+            });
+
+            generatedConfig = config;
+            document.getElementById('output-content').textContent = config;
+            document.getElementById('output').classList.add('show');
+            
+            showAlert(`Configuration generated for ${entries.length} entries`, 'success');
+        }
+
+        function downloadConfig() {
+            if (!generatedConfig) {
+                showAlert('No configuration to download', 'error');
+                return;
+            }
+
+            const blob = new Blob([generatedConfig], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `evpl_config_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function clearAll() {
+            if (confirm('Clear all entries?')) {
+                entries = [];
+                generatedConfig = '';
+                updateEntriesList();
+                document.getElementById('output').classList.remove('show');
+                document.getElementById('manual-form').reset();
+                document.getElementById('excel-file').value = '';
+                showAlert('All entries cleared', 'success');
+            }
+        }
+
+        // Drag and drop
+        const fileUpload = document.querySelector('.file-drop');
+        
+        fileUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUpload.classList.add('dragover');
+        });
+        
+        fileUpload.addEventListener('dragleave', () => {
+            fileUpload.classList.remove('dragover');
+        });
+        
+        fileUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUpload.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('excel-file').files = files;
+                handleExcelFile(document.getElementById('excel-file'));
+            }
+        });
+    </script>
+<div style="text-align: center; margin-top: 30px; font-size: 0.8rem; color: #777;">
+    Created by IBB
+</div>
+</body>
+</html>
