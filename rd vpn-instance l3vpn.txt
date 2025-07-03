@@ -1,0 +1,408 @@
+ip vpn-instance AJ-EXTERNAL
+ ipv4-family
+  route-distinguisher 65535:51574105
+  apply-label per-instance
+  vpn-target 65535:51574105 export-extcommunity
+  vpn-target 65535:51574105 import-extcommunity
+#
+ip vpn-instance ATM-NIAGA
+ ipv4-family
+  route-distinguisher 65535:520678072
+  apply-label per-instance
+  vpn-target 65535:520678072 export-extcommunity
+  vpn-target 65535:520678072 import-extcommunity
+#
+ip vpn-instance BANK-BJB
+ ipv4-family
+  route-distinguisher 65535:50101600
+  apply-label per-instance
+  vpn-target 65535:50101600 export-extcommunity
+  vpn-target 65535:50101600 import-extcommunity
+#
+ip vpn-instance BANK-INDONESIA
+ ipv4-family
+  route-distinguisher 65535:50060808
+  apply-label per-instance
+  vpn-target 65535:50060808 export-extcommunity
+  vpn-target 65535:50060808 import-extcommunity
+#
+ip vpn-instance BANK-PAN-INDONESIA
+ ipv4-family
+  route-distinguisher 65535:50062401
+  apply-label per-instance
+  vpn-target 65535:50062401 export-extcommunity
+  vpn-target 65535:50062401 import-extcommunity
+#
+ip vpn-instance BIFAST
+ ipv4-family
+  route-distinguisher 65535:50060802
+  apply-label per-instance
+  vpn-target 65535:50060802 export-extcommunity
+  vpn-target 65535:50060802 import-extcommunity
+#
+ip vpn-instance BII-NEW
+ ipv4-family
+  route-distinguisher 65535:50062391
+  apply-label per-instance
+  vpn-target 65535:50062391 export-extcommunity
+  vpn-target 65535:50062391 import-extcommunity
+#
+ip vpn-instance BNI46-ATM
+ ipv4-family
+  route-distinguisher 65535:50061310
+  apply-label per-instance
+  vpn-target 65535:50061310 export-extcommunity
+  vpn-target 65535:50061310 import-extcommunity
+#
+ip vpn-instance BNI46
+ ipv4-family
+  route-distinguisher 65535:50061300
+  apply-label per-instance
+  vpn-target 65535:50061300 export-extcommunity
+  vpn-target 65535:50061300 import-extcommunity
+#
+ip vpn-instance BSM1
+ ipv4-family
+  route-distinguisher 65535:50071602
+  apply-label per-instance
+  vpn-target 65535:50071602 export-extcommunity
+  vpn-target 65535:50071602 import-extcommunity
+#
+ip vpn-instance BTN-NEW
+ ipv4-family
+  route-distinguisher 65535:50061511
+  apply-label per-instance
+  vpn-target 65535:50061511 export-extcommunity
+  vpn-target 65535:50061511 import-extcommunity
+#
+ip vpn-instance GPON-ADTRAN
+ ipv4-family
+  route-distinguisher 4800:1516
+  apply-label per-instance
+  vpn-target 4800:1516 export-extcommunity
+  vpn-target 4800:1516 import-extcommunity
+#
+ip vpn-instance KORLANTAS-ERI
+ ipv4-family
+  route-distinguisher 65535:51715812
+  apply-label per-instance
+  vpn-target 65535:51715812 export-extcommunity
+  vpn-target 65535:51715812 import-extcommunity
+#
+ip vpn-instance MANDIRI-VPN
+ ipv4-family
+  route-distinguisher 65535:51505800
+  apply-label per-instance
+  vpn-target 65535:51505800 export-extcommunity
+  vpn-target 65535:51505800 import-extcommunity
+#
+ip vpn-instance DANAMON
+ ipv4-family
+  route-distinguisher 65535:50061800	
+  apply-label per-instance
+  vpn-target 65535:50061800 export-extcommunity
+  vpn-target 65535:50061800 import-extcommunity
+#
+ip vpn-instance MAYAPADA
+ ipv4-family
+  route-distinguisher 65535:50108600
+  apply-label per-instance
+  vpn-target 65535:50108600 export-extcommunity
+  vpn-target 65535:50108600 import-extcommunity
+#
+ip vpn-instance NEW-ATMMANDIRI
+ ipv4-family
+  route-distinguisher 65535:2000001
+  apply-label per-instance
+  vpn-target 65535:2000001 export-extcommunity
+  vpn-target 65535:2000001 import-extcommunity
+#
+ip vpn-instance NMS-GPON-ISCOM
+ ipv4-family
+  route-distinguisher 4800:1557
+  apply-label per-instance
+  vpn-target 4800:1557 export-extcommunity
+  vpn-target 4800:1557 import-extcommunity
+#
+ip vpn-instance NMS-IPI
+ ipv4-family
+  route-distinguisher 4800:780
+  apply-label per-instance
+  vpn-target 4800:780 export-extcommunity
+  vpn-target 4800:780 import-extcommunity
+#
+ip vpn-instance NMS-RAISECOM
+ ipv4-family
+  route-distinguisher 4800:1596
+  apply-label per-instance
+  vpn-target 4800:1596 export-extcommunity
+  vpn-target 4800:1596 import-extcommunity
+#
+ip vpn-instance NMS-RAX-CPE
+ ipv4-family
+  route-distinguisher 4800:1601
+  apply-label per-instance
+  vpn-target 4800:1601 export-extcommunity
+  vpn-target 4800:1601 import-extcommunity
+#
+ip vpn-instance NMS-SIMONICA
+ ipv4-family
+  route-distinguisher 4800:3103
+  apply-label per-instance
+  vpn-target 4800:3103 export-extcommunity
+  vpn-target 4800:3103 import-extcommunity
+#
+ip vpn-instance SINARMAS-CABANG2
+ ipv4-family
+  route-distinguisher 65535:2012053
+  apply-label per-instance
+  vpn-target 65535:2012053 export-extcommunity
+  vpn-target 65535:2012053 import-extcommunity
+  vpn-target 65535:222 import-extcommunity
+  vpn-target 65535:333 import-extcommunity
+  vpn-target 65535:51954200 import-extcommunity
+  vpn-target 65535:2013005887 import-extcommunity
+#
+ip vpn-instance XL-DUKCAPIL
+ ipv4-family
+  route-distinguisher 65535:50222000
+  apply-label per-instance
+  vpn-target 65535:50222000 export-extcommunity
+  vpn-target 65535:50222000 import-extcommunity
+#
+ip vpn-instance BCA-KCP-NEW	
+ ipv4-family
+  route-distinguisher 65535:621004981
+  apply-label per-instance
+  vpn-target 65535:621004981 export-extcommunity
+  vpn-target 65535:621004981 import-extcommunity
+#
+ip vpn-instance BCA-KCP-IWAN		
+ ipv4-family
+  route-distinguisher 65535:621004952
+  apply-label per-instance
+  vpn-target 65535:621004952 export-extcommunity
+  vpn-target 65535:621004952 import-extcommunity
+#
+ip vpn-instance AIRNAV		
+ ipv4-family
+  route-distinguisher 65535:53470820	
+  apply-label per-instance
+  vpn-target 65535:53470820	 export-extcommunity
+  vpn-target 65535:53470820	 import-extcommunity
+#
+ip vpn-instance INET-DEDICATED-CJDO
+ ipv4-family
+  route-distinguisher 48000:10016
+  apply-label per-instance
+  vpn-target 48000:10016 export-extcommunity
+  vpn-target 48000:10016 import-extcommunity
+#
+ip vpn-instance BANK-MASPION
+ ipv4-family
+  route-distinguisher 65535:50001200	
+  apply-label per-instance
+  vpn-target 65535:50001200 export-extcommunity
+  vpn-target 65535:50001200 import-extcommunity
+#
+
+ip vpn-instance BI-KBI
+ ipv4-family
+  route-distinguisher 65535:50060801	
+  apply-label per-instance
+  vpn-target 65535:50060801 export-extcommunity
+  vpn-target 65535:50060801 import-extcommunity
+#
+
+
+ip vpn-instance BANK-BUANA	
+ ipv4-family
+  route-distinguisher 65535:50062700		
+  apply-label per-instance
+  vpn-target 65535:50062700 export-extcommunity
+  vpn-target 65535:50062700 import-extcommunity
+#
+
+ip vpn-instance OJK-BU	
+ ipv4-family
+  route-distinguisher 65535:50004510			
+  apply-label per-instance
+  vpn-target 65535:50004510 export-extcommunity
+  vpn-target 65535:50004510 import-extcommunity
+#
+
+ip vpn-instance TASPEN	
+ ipv4-family
+  route-distinguisher 65535:50183900				
+  apply-label per-instance
+  vpn-target 65535:50183900 export-extcommunity
+  vpn-target 65535:50183900 import-extcommunity
+#
+
+ip vpn-instance PEGADAIAN
+ ipv4-family
+  route-distinguisher 65535:51754100	
+  apply-label per-instance
+  vpn-target 65535:51754100 export-extcommunity
+  vpn-target 65535:51754100 import-extcommunity
+#
+
+ip vpn-instance PRATAPA
+ ipv4-family
+  route-distinguisher 65535:51167400		
+  apply-label per-instance
+  vpn-target 65535:51167400 export-extcommunity
+  vpn-target 65535:51167400 import-extcommunity
+#
+
+ip vpn-instance JALIN_WAN
+ ipv4-family
+  route-distinguisher 65535:50060807			
+  apply-label per-instance
+  vpn-target 65535:50060807 export-extcommunity
+  vpn-target 65535:50060807 import-extcommunity
+#
+
+
+ip vpn-instance JAMKRINDO
+ ipv4-family
+  route-distinguisher 65535:52988700				
+  apply-label per-instance
+  vpn-target 65535:52988700 export-extcommunity
+  vpn-target 65535:52988700 import-extcommunity
+#
+
+ip vpn-instance SMSF
+ ipv4-family
+  route-distinguisher 65535:10792260				
+  apply-label per-instance
+  vpn-target 65535:10792260 export-extcommunity
+  vpn-target 65535:10792260 import-extcommunity
+#
+
+ip vpn-instance INTI-CAKRAWALA
+ ipv4-family
+  route-distinguisher 65535:52748100				
+  apply-label per-instance
+  vpn-target 65535:52748100 export-extcommunity
+  vpn-target 65535:52748100 import-extcommunity
+#
+
+ip vpn-instance GLOBAL
+ ipv4-family
+  route-distinguisher 70:1					
+  apply-label per-instance
+  vpn-target 70:1 export-extcommunity
+  vpn-target 70:1 import-extcommunity
+#
+
+
+ip vpn-instance BRI
+ ipv4-family
+  route-distinguisher 65535:50060900						
+  apply-label per-instance
+  vpn-target 65535:50060900 export-extcommunity
+  vpn-target 65535:50060900 import-extcommunity
+#
+
+ip vpn-instance ATM-MU
+ ipv4-family
+  route-distinguisher 65535:50111100						
+  apply-label per-instance
+  vpn-target 65535:50111100 export-extcommunity
+  vpn-target 65535:50111100 import-extcommunity
+#
+
+ip vpn-instance SHARP
+ ipv4-family
+  route-distinguisher 47:1
+  apply-label per-instance
+  vpn-target 65535:1000 export-extcommunity
+  vpn-target 47:1 export-extcommunity
+  vpn-target 65535:1000 import-extcommunity
+  vpn-target 47:1 import-extcommunity
+#
+
+ip vpn-instance BANK-INDONESIA
+ipv4-family
+route-distinguisher 65535:50060808
+apply-label per-instance
+vpn-target 65535:50060808 export-extcommunity
+vpn-target 65535:50060808 import-extcommunity
+#
+
+ip vpn-instance TELKOM-MPNG2
+ ipv4-family
+  route-distinguisher 65535:500666005						
+  apply-label per-instance
+  vpn-target 65535:500666005 export-extcommunity
+  vpn-target 65535:500666005 import-extcommunity
+#
+
+ip vpn-instance AJ-EXTERNAL
+ ipv4-family
+  route-distinguisher 65535:51574105						
+  apply-label per-instance
+  vpn-target 65535:51574105 export-extcommunity
+  vpn-target 65535:51574105 import-extcommunity
+#
+
+
+ip vpn-instance BIFAST
+ ipv4-family
+  route-distinguisher 65535:50060802						
+  apply-label per-instance
+  vpn-target 65535:50060802 export-extcommunity
+  vpn-target 65535:50060802 import-extcommunity
+#
+
+ip vpn-instance HANA-BANK
+ ipv4-family
+  route-distinguisher 65535:52017600
+  apply-label per-instance
+  vpn-target 65535:52017600 export-extcommunity
+  vpn-target 65535:52017600 import-extcommunity
+  vpn-target 4800:1000 import-extcommunity
+#
+ip vpn-instance NMS-BWA-WIBAS
+ ipv4-family
+  route-distinguisher 4800:610
+  apply-label per-instance
+  vpn-target 4800:610 export-extcommunity
+  vpn-target 4800:610 import-extcommunity
+#
+ip vpn-instance ATM-BJB
+ ipv4-family
+  route-distinguisher 65535:50101601
+  apply-label per-instance
+  vpn-target 65535:50101601 export-extcommunity
+  vpn-target 65535:50101601 import-extcommunity
+#
+ip vpn-instance INA-PERDANA
+ ipv4-family
+  route-distinguisher 65535:51780747
+  apply-label per-instance
+  vpn-target 65535:51780747 export-extcommunity
+  vpn-target 65535:51780747 import-extcommunity
+#
+ip vpn-instance TNI-AU
+ ipv4-family
+  route-distinguisher 65535:10279488
+  apply-label per-instance
+  vpn-target 65535:10279488 export-extcommunity
+  vpn-target 65535:10279488 import-extcommunity
+#
+ip vpn-instance PERMATA-EDC
+ ipv4-family
+  route-distinguisher 65535:5163399
+  apply-label per-instance
+  vpn-target 65535:5163399 export-extcommunity
+  vpn-target 65535:5163399 import-extcommunity
+#
+ip vpn-instance NEW-CIMB-NIAGA
+ ipv4-family
+  route-distinguisher 65535:52067805
+  apply-label per-instance
+  vpn-target 65535:52067805 export-extcommunity
+  vpn-target 65535:52067805 import-extcommunity
+#
