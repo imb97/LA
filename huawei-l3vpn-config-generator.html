@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huawei L3VPN Config Generator (Simple)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif; /* Font lebih umum */
+            background: #f0f2f5; /* Warna latar belakang solid, lebih terang */
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px; /* Lebar sedikit lebih kecil */
+            margin: 0 auto;
+            background: #ffffff; /* Latar belakang putih solid */
+            border-radius: 8px; /* Sudut lebih lembut */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08); /* Bayangan lebih tipis */
+            overflow: hidden;
+        }
+
+        .header {
+            background: #4a69bd; /* Warna solid yang lebih gelap */
+            padding: 20px; /* Padding lebih kecil */
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2em; /* Ukuran font sedikit lebih kecil */
+            margin-bottom: 0; /* Hapus margin bawah */
+            text-shadow: none; /* Hapus text-shadow */
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .content {
+            padding: 30px; /* Padding konten lebih kecil */
+        }
+
+        .upload-section {
+            background: #ffffff; /* Latar belakang putih */
+            border: 1px dashed #cccccc; /* Border lebih tipis dan warna netral */
+            border-radius: 8px;
+            padding: 30px; /* Padding lebih kecil */
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.2s ease; /* Transisi sederhana */
+        }
+
+        .upload-section:hover {
+            background: #f8f8f8; /* Efek hover sederhana */
+            border-color: #999999;
+        }
+
+        .upload-section.dragover {
+            background: #e6f7ff;
+            border-color: #8ccbff;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: #007bff; /* Warna tombol standar */
+            color: white;
+            border: none;
+            padding: 10px 20px; /* Padding lebih kecil */
+            border-radius: 5px; /* Sudut lebih tajam */
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            margin-top: 15px; /* Jarak dari teks */
+        }
+
+        .upload-btn:hover {
+            background: #0056b3;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e9f7ef; /* Warna lebih lembut */
+            border: 1px solid #cce5da;
+            border-radius: 5px;
+            color: #1a5732;
+            font-size: 0.9em;
+            text-align: left;
+        }
+
+        /* Generate Button specific style */
+        .generate-btn-container {
+            text-align: center;
+            margin-bottom: 20px; /* Space below the button */
+        }
+        
+        .generate-btn {
+            background: #28a745; /* Warna solid */
+            color: white;
+            border: none;
+            padding: 12px 25px; /* Padding sedikit lebih kecil */
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .generate-btn:hover {
+            background: #218838;
+        }
+
+        .generate-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .output-section {
+            margin-top: 20px; /* Margin lebih kecil */
+            background: #ffffff; /* Latar belakang output area */
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px; /* Margin lebih kecil */
+        }
+
+        .output-header h3 {
+            color: #333333;
+            font-size: 1.3em; /* Ukuran font lebih kecil */
+        }
+
+        .copy-btn, .download-btn { /* Apply styles to both buttons */
+            background: #6c757d; /* Warna abu-abu netral */
+            color: white;
+            border: none;
+            padding: 8px 15px; /* Padding lebih kecil */
+            border-radius: 4px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            margin-left: 10px; /* Spasi antar tombol */
+        }
+
+        .copy-btn:hover, .download-btn:hover {
+            background: #5a6268;
+        }
+
+        .output-buttons { /* Container for output action buttons */
+            display: flex;
+            gap: 10px; /* Space between buttons */
+        }
+
+        .config-output {
+            background: #e9ecef; /* Latar belakang lebih terang */
+            color: #343a40; /* Teks lebih gelap */
+            padding: 15px; /* Padding lebih kecil */
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace; /* Font monospace standar */
+            font-size: 12px; /* Ukuran font lebih kecil */
+            line-height: 1.4;
+            white-space: pre-wrap;
+            max-height: 400px; /* Tinggi maksimal lebih rendah */
+            overflow-y: auto;
+            border: 1px solid #ced4da;
+        }
+
+        .config-output::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .config-output::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .config-output::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        
+        .config-output::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .error {
+            background: #fdd;
+            color: #c00;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #fbc;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+
+        .data-preview {
+            margin-top: 15px;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 20px; /* Space before the generate button */
+        }
+
+        .data-preview h4 {
+            margin-bottom: 10px;
+            color: #333333;
+            font-size: 1.1em;
+        }
+
+        .data-preview #previewTable { /* Tambahkan ini untuk scrollability */
+            max-height: 300px; /* Atur tinggi maksimum, sesuaikan sesuai kebutuhan */
+            overflow-y: auto; /* Aktifkan scrolling vertikal */
+            border: 1px solid #e0e0e0; /* Tambahkan border agar lebih jelas */
+            border-radius: 5px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px; /* Ukuran font lebih kecil */
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #e9ecef;
+            padding: 6px; /* Padding lebih kecil */
+            text-align: left;
+        }
+
+        .data-table th {
+            background: #f2f2f2; /* Warna latar belakang header tabel */
+            font-weight: bold;
+        }
+
+        .data-table tr:nth-child(even) {
+            background: #f8f8f8;
+        }
+
+        @media (max-width: 768px) {
+            .output-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            .output-buttons {
+                flex-direction: column;
+                width: 100%;
+                gap: 5px;
+            }
+            .copy-btn, .download-btn {
+                margin-left: 0; /* Remove horizontal margin for stacking */
+                width: 100%; /* Make buttons full width */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Huawei L3VPN Config Generator</h1>
+            <p>Generate konfigurasi Huawei L3VPN dari file Excel</p>
+        </div>
+        
+        <div class="content">
+            <div class="upload-section" id="uploadSection">
+                <div>
+                    <h3>Upload File Excel</h3>
+                    <p>Drag & drop file Excel atau klik tombol di bawah</p>
+                    <p style="font-size: 0.8em; color: #666; margin-top: 10px; line-height: 1.4;">
+                        Format Kolom yang Diperlukan (Case-sensitive):<br>
+                        `Subinterface`, `Service ID`, `Description`, `VRF`, `IPv4 Primary`, `IPv4 Secondary`, `SVLAN`, `CVLAN`, `Bandwidth In`, `Bandwidth Out`<br>
+                        Kolom `Subinterface` harus berisi nama interface lengkap (e.g., `GigabitEthernet0/0/1.100` atau `GigabitEthernet0/0/1`).
+                    </p>
+                    <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls" />
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        Pilih File Excel
+                    </button>
+                    <div id="fileInfo" class="file-info" style="display: none;"></div>
+                </div>
+            </div>
+            
+            <div id="dataPreview" class="data-preview" style="display: none;">
+                <h4>Preview Data</h4>
+                <div id="previewTable"></div>
+            </div>
+
+            <div class="generate-btn-container">
+                <button class="generate-btn" id="generateBtn" onclick="generateConfig()" disabled>
+                    Generate Config
+                </button>
+            </div>
+            
+            <div id="outputSection" class="output-section" style="display: none;">
+                <div class="output-header">
+                    <h3>Konfigurasi yang Dihasilkan</h3>
+                    <div class="output-buttons">
+                        <button class="copy-btn" onclick="copyConfig()">Copy Config</button>
+                        <button class="download-btn" onclick="downloadConfig()">Download .txt</button>
+                    </div>
+                </div>
+                <div id="configOutput" class="config-output"></div>
+            </div>
+            
+            <div id="errorSection" class="error" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let excelData = null;
+        const defaultRouterName = 'R1'; // Default router name
+        
+        // Drag and drop functionality
+        const uploadSection = document.getElementById('uploadSection');
+        const fileInput = document.getElementById('fileInput');
+        
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+        
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+        
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        function handleFile(file) {
+            const fileInfo = document.getElementById('fileInfo');
+            const errorSection = document.getElementById('errorSection');
+            
+            if (!file.name.match(/\.(xlsx|xls)$/)) {
+                showError('File harus berformat Excel (.xlsx atau .xls)');
+                return;
+            }
+            
+            fileInfo.innerHTML = `
+                <strong>📄 ${file.name}</strong><br>
+                <span>Ukuran: ${(file.size / 1024 / 1024).toFixed(2)} MB</span><br>
+                <span>Status: Memproses...</span>
+            `;
+            fileInfo.style.display = 'block';
+            errorSection.style.display = 'none';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    if (jsonData.length === 0) {
+                        throw new Error('File Excel kosong atau tidak memiliki data');
+                    }
+                    
+                    // Validate required columns
+                    const requiredColumns = ['Subinterface', 'Service ID', 'Description', 'VRF', 'IPv4 Primary', 'IPv4 Secondary', 'SVLAN', 'CVLAN', 'Bandwidth In', 'Bandwidth Out'];
+                    const availableColumns = Object.keys(jsonData[0]);
+                    const missingColumns = requiredColumns.filter(col => !availableColumns.includes(col));
+                    
+                    if (missingColumns.length > 0) {
+                        throw new Error(`Kolom berikut tidak ditemukan: ${missingColumns.join(', ')}`);
+                    }
+                    
+                    excelData = jsonData;
+                    
+                    fileInfo.innerHTML = `
+                        <strong>✅ ${file.name}</strong><br>
+                        <span>Ukuran: ${(file.size / 1024 / 1024).toFixed(2)} MB</span><br>
+                        <span>Status: Berhasil dimuat (${jsonData.length} baris data)</span>
+                    `;
+                    
+                    document.getElementById('generateBtn').disabled = false;
+                    showDataPreview(jsonData);
+                    
+                } catch (error) {
+                    showError('Error membaca file Excel: ' + error.message);
+                    fileInfo.style.display = 'none';
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        function showDataPreview(data) {
+            const previewDiv = document.getElementById('dataPreview');
+            const previewTable = document.getElementById('previewTable');
+            
+            if (data.length === 0) return;
+            
+            const columns = Object.keys(data[0]);
+            const displayData = data; // Tampilkan SEMUA baris data
+            
+            let tableHTML = '<table class="data-table"><thead><tr>';
+            columns.forEach(col => {
+                tableHTML += `<th>${col}</th>`;
+            });
+            tableHTML += '</tr></thead><tbody>';
+            
+            displayData.forEach(row => {
+                tableHTML += '<tr>';
+                columns.forEach(col => {
+                    tableHTML += `<td>${row[col] || ''}</td>`;
+                });
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</tbody></table>';
+            
+            tableHTML += `<p style="margin-top: 10px; color: #666; font-size: 0.9em;">Total ${data.length} baris data.</p>`;
+
+            previewTable.innerHTML = tableHTML;
+            previewDiv.style.display = 'block';
+        }
+        
+        function generateConfig() {
+            if (!excelData) {
+                showError('Silakan upload file Excel terlebih dahulu');
+                return;
+            }
+            
+            try {
+                let config = generateHuaweiL3VPNConfig(excelData, defaultRouterName);
+                
+                document.getElementById('configOutput').textContent = config;
+                document.getElementById('outputSection').style.display = 'block';
+                document.getElementById('errorSection').style.display = 'none';
+                
+                // Scroll to output
+                document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                showError('Error generating config: ' + error.message);
+            }
+        }
+
+        // Helper function to format bandwidth
+        function formatBandwidth(bwString) {
+            if (!bwString) return '';
+
+            // Ensure bwString is treated as a string
+            bwString = String(bwString).trim(); 
+
+            const numericValue = parseFloat(bwString);
+            if (isNaN(numericValue)) {
+                return bwString; // Return original if not a valid number
+            }
+
+            if (bwString.toUpperCase().endsWith('K')) {
+                const valueInK = numericValue;
+                if (valueInK % 1024 === 0) {
+                    return `${valueInK / 1024}M`;
+                }
+            } else if (bwString.toUpperCase().endsWith('M')) {
+                // Already in M, return as is
+                return `${numericValue}M`;
+            }
+            // If no unit or ends with K but not convertible, return original
+            return bwString;
+        }
+        
+        function generateHuaweiL3VPNConfig(data, routerName) {
+            let config = '';
+            
+            // Header
+            config += `#\n# Huawei L3VPN Configuration\n# Generated on: ${new Date().toLocaleString()}\n#\n\n`; // Removed "Generated for"
+            
+            // Interface configuration only
+            data.forEach((row, index) => {
+                const originalSubInt = row.Subinterface || ''; // Keep original for base extraction
+                const serviceId = row['Service ID'] || '';
+                let description = row.Description || ''; // Start with Description
+                const vrf = row.VRF || ''; // Original VRF value
+                const ipv4Primary = row['IPv4 Primary'] || '';
+                const ipv4Secondary = row['IPv4 Secondary'] || '';
+                const svlan = row.SVLAN || '';
+                const cvlan = row.CVLAN || '';
+                
+                let bandwidthIn = row['Bandwidth In'] || '';
+                let bandwidthOut = row['Bandwidth Out'] || '';
+
+                // Apply bandwidth formatting
+                bandwidthIn = formatBandwidth(bandwidthIn);
+                bandwidthOut = formatBandwidth(bandwidthOut);
+
+                // Determine final VRF
+                const finalVrf = vrf || 'INET-DEDICATED-CJDO'; // Default VRF if empty
+                
+                if (!originalSubInt) return;
+
+                // --- Logic for generating new subinterface name ---
+                let subinterfaceToUse = originalSubInt; // Default to original from Excel
+
+                let newSubinterfaceIdPart = '';
+                if (svlan && cvlan) {
+                    newSubinterfaceIdPart = String(svlan) + String(cvlan);
+                } else if (cvlan) {
+                    newSubinterfaceIdPart = String(cvlan);
+                }
+
+                if (newSubinterfaceIdPart) {
+                    // Extract base interface from originalSubInt (e.g., GigabitEthernet0/0/1 from GigabitEthernet0/0/1.100)
+                    let baseInterface = originalSubInt;
+                    const lastDotIndex = originalSubInt.lastIndexOf('.');
+                    if (lastDotIndex !== -1) {
+                        baseInterface = originalSubInt.substring(0, lastDotIndex);
+                    }
+                    subinterfaceToUse = `${baseInterface}.${newSubinterfaceIdPart}`;
+                }
+                // --- End of new subinterface name logic ---
+
+                // Combine Service ID and Description
+                if (serviceId) {
+                    description = `${serviceId}-${description}`;
+                }
+                
+                config += `interface ${subinterfaceToUse}\n`; // Use the generated subinterface name
+                
+                // VLAN configuration - prioritize QinQ if both SVLAN and CVLAN are present
+                if (svlan && cvlan) {
+                    // QinQ configuration (SVLAN + CVLAN)
+                    config += ` description ${description}\n`;
+                    config += ` ip binding vpn-instance ${finalVrf}\n`; // Use finalVrf
+                    config += ` ip address ${ipv4Primary.replace('/', ' ')}\n`;
+                    config += ` statistic enable\n`;
+                    config += ` encapsulation qinq-termination\n`;
+                    config += ` qinq termination pe-vid ${svlan} ce-vid ${cvlan}\n`;
+                    config += ` arp broadcast enable\n`;
+                    config += ` arp-proxy inter-sub-vlan-proxy enable\n`;
+                    
+                    // QoS with SVLAN/CVLAN
+                    if (bandwidthIn || bandwidthOut) {
+                        const bandwidth = bandwidthIn || bandwidthOut;
+                        config += ` qos-profile ${bandwidth} inbound pe-vid ${svlan} ce-vid ${cvlan} identifier none\n`;
+                        config += ` qos-profile ${bandwidth} outbound pe-vid ${svlan} ce-vid ${cvlan} identifier none\n`;
+                    }
+                } else if (cvlan) {
+                    // Dot1Q configuration (CVLAN only)
+                    config += ` vlan-type dot1q ${cvlan}\n`;
+                    config += ` description ${description}\n`;
+                    config += ` ip binding vpn-instance ${finalVrf}\n`; // Use finalVrf
+                    config += ` ip address ${ipv4Primary.replace('/', ' ')}\n`;
+                    config += ` statistic enable\n`;
+                    
+                    // QoS for dot1q
+                    if (bandwidthIn || bandwidthOut) {
+                        const bandwidth = bandwidthIn || bandwidthOut;
+                        config += ` qos-profile ${bandwidth} inbound identifier none\n`;
+                        config += ` qos-profile ${bandwidth} outbound identifier none\n`;
+                    }
+                } else {
+                    // No VLAN configuration (straight interface or if no CVLAN to form dot1q)
+                    // In this case, the 'subinterfaceToUse' will be the originalSubInt
+                    // if it didn't have a dot or if newSubinterfaceIdPart was empty.
+                    config += ` description ${description}\n`;
+                    config += ` ip binding vpn-instance ${finalVrf}\n`; // Use finalVrf
+                    config += ` ip address ${ipv4Primary.replace('/', ' ')}\n`;
+                    config += ` statistic enable\n`;
+                    
+                    // QoS without VLAN
+                    if (bandwidthIn || bandwidthOut) {
+                        const bandwidth = bandwidthIn || bandwidthOut;
+                        config += ` qos-profile ${bandwidth} inbound identifier none\n`;
+                        config += ` qos-profile ${bandwidth} outbound identifier none\n`;
+                    }
+                }
+                
+                // Secondary IP if exists
+                if (ipv4Secondary) {
+                    config += ` ip address ${ipv4Secondary.replace('/', ' ')} sub\n`;
+                }
+                
+                config += `#\n`;
+            });
+            
+            config += `\n# End of subinterface configuration\n`;
+            
+            return config;
+        }
+        
+        function copyConfig() {
+            const configOutput = document.getElementById('configOutput');
+            const textArea = document.createElement('textarea');
+            textArea.value = configOutput.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            const copyBtn = document.querySelector('.copy-btn');
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = '✅ Copied!';
+            copyBtn.style.background = '#28a745'; /* Warna hijau solid */
+            
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+                copyBtn.style.background = '#6c757d'; /* Kembali ke warna abu-abu */
+            }, 2000);
+        }
+
+        function downloadConfig() {
+            const configOutput = document.getElementById('configOutput').textContent;
+            const filename = `${defaultRouterName}_config.txt`; // Use defaultRouterName for filename
+            
+            const blob = new Blob([configOutput], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            const downloadBtn = document.querySelector('.download-btn');
+            const originalText = downloadBtn.textContent;
+            downloadBtn.textContent = '✅ Downloading!';
+            downloadBtn.style.background = '#007bff'; /* Warna biru solid */
+
+            setTimeout(() => {
+                downloadBtn.textContent = originalText;
+                downloadBtn.style.background = '#6c757d'; /* Kembali ke warna abu-abu */
+            }, 2000);
+        }
+        
+        function showError(message) {
+            const errorSection = document.getElementById('errorSection');
+            errorSection.textContent = message;
+            errorSection.style.display = 'block';
+            errorSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
