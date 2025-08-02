@@ -1,0 +1,235 @@
+# KONFIGURASI PE REMOTE INTERNET LITE GATEWAY JKTTBS [ HUAWEI ]										
+
+evpn vpn-instance INET-LITE-GROUP1-JKTTBSIDR3 bd-mode
+ route-distinguisher 65504:10013
+ etree enable
+ vpn-target 65504:10013 export-extcommunity
+ vpn-target 65504:10013 import-extcommunity
+#
+bridge-domain 300012
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP1-JKTTBSIDR3
+#
+evpn vpn-instance INET-LITE-GROUP2-JKTTBSIDR3 bd-mode
+ route-distinguisher 65504:10014
+ etree enable
+ vpn-target 65504:10014 export-extcommunity
+ vpn-target 65504:10014 import-extcommunity
+#
+bridge-domain 300013
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP2-JKTTBSIDR3
+#
+evpn vpn-instance INET-LITE-GROUP3-JKTTBSIDR3 bd-mode
+ route-distinguisher 65504:10015
+ etree enable
+ vpn-target 65504:10015 export-extcommunity
+ vpn-target 65504:10015 import-extcommunity
+#
+bridge-domain 300014
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP3-JKTTBSIDR3
+#
+evpn vpn-instance INET-LITE-GROUP4-JKTTBSIDR3 bd-mode
+ route-distinguisher 45730:3704
+ etree enable
+ vpn-target 45730:3704 export-extcommunity
+ vpn-target 45730:3704 import-extcommunity
+#
+bridge-domain 300015
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP4-JKTTBSIDR3
+#
+evpn vpn-instance INET-LITE-GROUP5-JKTTBSIDR3 bd-mode
+ route-distinguisher 65504:10017
+ etree enable
+ vpn-target 65504:10017 export-extcommunity
+ vpn-target 65504:10017 import-extcommunity
+#
+bridge-domain 300016
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP5-JKTTBSIDR3
+#
+evpn vpn-instance INET-LITE-GROUP6-JKTTBSIDR3 bd-mode
+ route-distinguisher 65504:10018
+ etree enable
+ vpn-target 65504:10018 export-extcommunity
+ vpn-target 65504:10018 import-extcommunity
+#
+bridge-domain 300017
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP6-JKTTBSIDR3
+#
+evpn vpn-instance INET-LITE-GROUP7-JKTTBSIDR3 bd-mode
+ route-distinguisher 64403:10007
+ etree enable
+ vpn-target 64403:10007 export-extcommunity
+ vpn-target 64403:10007 import-extcommunity
+#
+bridge-domain 300018
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP7-JKTTBSIDR3
+#
+evpn vpn-instance INET-LITE-GROUP8-JKTTBSIDR3 bd-mode
+ route-distinguisher 45730:371601
+ etree enable
+ vpn-target  45730:371601 export-extcommunity
+ vpn-target  45730:371601 import-extcommunity
+#
+bridge-domain 300019
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP8-JKTTBSIDR3
+#
+evpn vpn-instance INET-LITE-GROUP9-JKTTBSIDR3 bd-mode
+ route-distinguisher 65504:10027
+ etree enable
+ vpn-target 64403:10006 export-extcommunity
+ vpn-target 64403:10006 import-extcommunity
+#
+bridge-domain 300020
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP9-JKTTBSIDR3
+#
+evpn vpn-instance INET-LITE-GROUP10-JKTTBSIDR3 bd-mode
+ route-distinguisher 45730:371801
+ etree enable
+ vpn-target 45730:371801 export-extcommunity
+ vpn-target 45730:371801 import-extcommunity
+#
+bridge-domain 300005
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP10-JKTTBSIDR3
+#
+evpn vpn-instance INET-LITE-GROUP11-JKTTBSIDR3 bd-mode
+ route-distinguisher 64403:10001
+ etree enable
+ vpn-target 64403:10001 export-extcommunity
+ vpn-target 64403:10001 import-extcommunity
+#
+bridge-domain 300021
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP11-JKTTBSIDR3
+#
+
+# KONFIGURASI PE REMOTE INTERNET LITE GATEWAY TGRTKN [ HUAWEI ]											
+
+evpn vpn-instance INET-LITE-GROUP1-TGRTKNIDR3 bd-mode
+ route-distinguisher 65504:10023
+ etree enable
+ vpn-target 65504:10023 export-extcommunity
+ vpn-target 65504:10023 import-extcommunity
+#
+bridge-domain 300022
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP1-TGRTKNIDR3
+#
+evpn vpn-instance INET-LITE-GROUP2-TGRTKNIDR3 bd-mode
+ route-distinguisher 65504:10024
+ etree enable
+ vpn-target 65504:10024 export-extcommunity
+ vpn-target 65504:10024 import-extcommunity
+#
+bridge-domain 300023
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP2-TGRTKNIDR3
+#
+evpn vpn-instance INET-LITE-GROUP3-TGRTKNIDR3 bd-mode
+ route-distinguisher 65504:10025
+ etree enable
+ vpn-target 65504:10025 export-extcommunity
+ vpn-target 65504:10025 import-extcommunity
+#
+bridge-domain 300024
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP3-TGRTKNIDR3
+#
+evpn vpn-instance INET-LITE-GROUP4-TGRTKNIDR3 bd-mode
+ route-distinguisher 65504:10003
+ etree enable
+ vpn-target 65504:10003 export-extcommunity
+ vpn-target 65504:10003 import-extcommunity
+#
+bridge-domain 300002
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP4-TGRTKNIDR3
+#
+evpn vpn-instance INET-LITE-GROUP5-TGRTKNIDR3 bd-mode
+ route-distinguisher 65504:10004
+ etree enable
+ vpn-target 65504:10004 export-extcommunity
+ vpn-target 65504:10004 import-extcommunity
+#
+bridge-domain 300003
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP5-TGRTKNIDR3
+#
+evpn vpn-instance INET-LITE-GROUP6-TGRTKNIDR3 bd-mode
+ route-distinguisher 45730:371001
+ etree enable
+ vpn-target 45730:371001 export-extcommunity
+ vpn-target 45730:371001 import-extcommunity
+#
+bridge-domain 300008
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP6-TGRTKNIDR3
+#
+evpn vpn-instance INET-LITE-GROUP7-TGRTKNIDR3 bd-mode
+ route-distinguisher 65504:10026
+ etree enable
+ vpn-target 65504:10026 export-extcommunity
+ vpn-target 65504:10026 import-extcommunity
+#
+bridge-domain 300025
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP7-TGRTKNIDR3
+#
+evpn vpn-instance INET-LITE-GROUP8-TGRTKNIDR3 bd-mode
+ route-distinguisher 65504:10005
+ etree enable
+ vpn-target 65504:10005 export-extcommunity
+ vpn-target 65504:10005 import-extcommunity
+#
+bridge-domain 300004
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP8-TGRTKNIDR3
+#
+evpn vpn-instance INET-LITE-GROUP9-TGRTKNIDR3 bd-mode
+ route-distinguisher 65504:10027
+ etree enable
+ vpn-target 65504:10027 export-extcommunity
+ vpn-target 65504:10027 import-extcommunity
+#
+bridge-domain 300026
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP9-TGRTKNIDR3
+#
+evpn vpn-instance INET-LITE-GROUP10-TGRTKNIDR3 bd-mode
+ route-distinguisher 65504:10028
+ etree enable
+ vpn-target 65504:10028 export-extcommunity
+ vpn-target 65504:10028 import-extcommunity
+#
+bridge-domain 300027
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP10-TGRTKNIDR3
+#
+evpn vpn-instance INET-LITE-GROUP11-TGRTKNIDR3 bd-mode
+ route-distinguisher 65504:10029
+ etree enable
+ vpn-target 65504:10029 export-extcommunity
+ vpn-target 65504:10029 import-extcommunity
+#
+bridge-domain 300028
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP11-TGRTKNIDR3
+#
+evpn vpn-instance INET-LITE-GROUP12-TGRTKNIDR3 bd-mode
+ route-distinguisher 65504:10030
+ etree enable
+ vpn-target 65504:10030 export-extcommunity
+ vpn-target 65504:10030 import-extcommunity
+#
+bridge-domain 300029
+ mac-address aging-time 300
+ evpn binding vpn-instance INET-LITE-GROUP12-TGRTKNIDR3
+#
