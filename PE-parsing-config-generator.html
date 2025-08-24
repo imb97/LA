@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PE Config Summary Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Global Reset & Body Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Container Styling */
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 1500px; /* Increased max-width for new column */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e5e7eb;
+        }
+
+        /* Header Styling */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        /* Form Section Layout */
+        .form-section {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 40px;
+            margin-bottom: 50px;
+            align-items: start;
+        }
+
+        /* Device Selector Styling */
+        .device-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .device-selector h3 {
+            color: #374151;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .device-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .device-option {
+            position: relative;
+        }
+
+        .device-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .device-option label {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .device-option label::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid #cbd5e1;
+            border-radius: 50%;
+            margin-right: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .device-option input[type="radio"]:checked + label {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+
+        .device-option input[type="radio"]:checked + label::before {
+            background: white;
+            border-color: white;
+            box-shadow: inset 0 0 0 4px #3b82f6;
+        }
+
+        /* File Upload Area Styling */
+        .file-upload-area {
+            position: relative;
+        }
+
+        .file-upload-area h3 {
+            color: #374151;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .drop-zone {
+            border: 3px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 60px 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: #f8fafc;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.05);
+            transform: scale(1.02);
+        }
+
+        .drop-zone.has-file {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        /* New styling for drop-zone with multiple files */
+        .drop-zone.has-multiple-files {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .upload-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            background: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.drag-over .upload-icon {
+            transform: scale(1.1);
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            color: #4b5563;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .upload-subtext {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+        
+        /* New styling for multiple file list */
+        .file-list {
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .file-list.show {
+            display: flex;
+        }
+        
+        .file-list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: #10b981;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #065f46;
+            margin-bottom: 4px;
+        }
+
+        .file-size {
+            font-size: 0.9rem;
+            color: #059669;
+        }
+
+        .remove-file {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .remove-file:hover {
+            background: rgba(220, 38, 38, 0.1);
+        }
+
+        /* Generate Button Styling */
+        .generate-btn {
+            width: 100%;
+            padding: 16px 32px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-section {
+            margin-top: 50px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .results-section.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .results-header h2 {
+            color: #374151;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        .loading-spinner.show {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* NEW CSS for Vertical Scroll */
+        .table-container-outer {
+            max-height: 1000px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 16px;
+        }
+
+        /* Table Specific Styling for Responsiveness */
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e5e7eb;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1400px; /* Adjusted min-width back to something reasonable without VRF in summary */
+        }
+
+        th {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            color: #374151;
+            font-weight: 600;
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #4b5563;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        /* Specific override for Description column to allow wrapping */
+        td:nth-child(3), td:nth-child(5), td:nth-child(6), td:nth-child(7), td:nth-child(8), td:nth-child(9) { 
+            white-space: normal;
+            min-width: 150px;
+        }
+        
+        tbody tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* New: Highlight for shutdown interfaces */
+        tr.shutdown-row {
+            background-color: #ffe6e6 !important; /* Light red background */
+            color: #cc0000; /* Darker red text */
+        }
+        tr.shutdown-row td {
+            border-color: #ffcccc; /* Lighter red border for cells */
+        }
+
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+            font-size: 1.1rem;
+        }
+
+        .hidden-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* SVG icon styles */
+        .upload-icon svg, .remove-file svg {
+            fill: currentColor;
+        }
+
+        /* Summary Section Styling */
+        .summary-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .summary-section h2 {
+            color: #374151;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .summary-section .table-container {
+            box-shadow: none;
+            border: none;
+            border-radius: 0;
+        }
+        
+        /* Overall Bandwidth Panel Styling - Reverted and Adjusted */
+        .overall-bandwidth-panel {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 25px 30px;
+            margin-top: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .overall-bandwidth-panel p {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3a8a;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .overall-bandwidth-panel p:last-child {
+            margin-bottom: 0;
+        }
+
+        .overall-bandwidth-panel span {
+            font-weight: 700;
+            color: #065f46;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 5px 10px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 1.3rem;
+        }
+
+        /* Export Button Styling */
+        .export-btn {
+            background: #10b981; /* Green color */
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px; /* Space from table */
+            display: none; /* Hidden by default, shown when results are present */
+            float: right; /* Align to right */
+            margin-bottom: 20px; /* Space below button */
+        }
+
+        .export-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px (16, 185, 129, 0.35);
+        }
+
+        .export-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+
+        /* Responsive Adjustments */
+        @media (max-width: 1400px) {
+            .container {
+                max-width: 95%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 24px;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .form-section {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .drop-zone {
+                padding: 40px 20px;
+            }
+
+            table {
+                min-width: unset;
+            }
+            th, td {
+                padding: 10px 12px;
+                font-size: 0.85rem;
+            }
+            .overall-bandwidth-panel {
+                padding: 20px 25px;
+                margin-top: 15px;
+                margin-bottom: 25px;
+            }
+            .overall-bandwidth-panel p {
+                font-size: 1.1rem;
+            }
+            .overall-bandwidth-panel span {
+                font-size: 1.1rem;
+                margin-left: 8px;
+                padding: 4px 8px;
+            }
+            .export-btn {
+                width: 100%;
+                float: none;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PE Config Parser</h1>
+            <p>Generate beautiful summaries from your network configuration files</p>
+        </div>
+
+        <div class="form-section">
+            <div class="device-selector">
+                <h3>Select Device Type</h3>
+                <div class="device-options">
+                    <div class="device-option">
+                        <input type="radio" id="cisco" name="device" value="cisco">
+                        <label for="cisco">Cisco</label>
+                    </div>
+                    <div class="device-option">
+                        <input type="radio" id="huawei" name="device" value="huawei">
+                        <label for="huawei">Huawei</label>
+                    </div>
+                    <div class="device-option">
+                        <input type="radio" id="juniper" name="device" value="juniper">
+                        <label for="juniper">Juniper</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="file-upload-area">
+                <h3>Upload Configuration File</h3>
+                <div class="drop-zone" id="dropZone">
+                    <div class="upload-icon">
+                        <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                        </svg>
+                    </div>
+                    <div class="upload-text" id="uploadText">Drop your config file(s) here</div>
+                    <div class="upload-subtext">or click to browse (.txt files only)</div>
+                </div>
+                <input type="file" id="fileInput" class="hidden-input" accept=".txt" multiple>
+                
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <div class="file-icon">TXT</div>
+                    <div class="file-details">
+                        <div class="file-name" id="fileName"></div>
+                        <div class="file-size" id="fileSize"></div>
+                    </div>
+                    <button class="remove-file" id="removeFile">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="file-list" id="fileList"></div>
+            </div>
+        </div>
+
+        <button class="generate-btn" id="generateBtn" disabled>Generate Summary</button>
+
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <h2>Configuration Summary</h2>
+                <div class="loading-spinner" id="loadingSpinner"></div>
+                <button class="export-btn" id="exportBtn" style="display: none;">Export to Excel</button>
+            </div>
+            
+            <div class="table-container-outer">
+                <div class="table-container">
+                    <table id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>Subinterface</th>
+                                <th>Service ID</th>
+                                <th>Description</th>
+                                <th>VRF</th>
+                                <th>IPv4 Primary</th>
+                                <th>IPv4 Secondary</th>
+                                <th>SVLAN</th>
+                                <th>CVLAN</th>
+                                <th>Bandwidth In</th>
+                                <th>Bandwidth Out</th>
+                                <th>Shutdown Flag</th> </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="12" class="no-data">Select device type and upload a configuration file to see results here</td> </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="summary-section" id="summarySection" style="display: none;">
+                <h2>Bandwidth Utilization Summary</h2>
+                <div class="overall-bandwidth-panel" id="overallBandwidthPanel">
+                    <p>Overall Total Bandwidth In: <span id="grandTotalIn"></span></p>
+                    <p>Overall Total Bandwidth Out: <span id="grandTotalOut"></span></p>
+                </div>
+                <div class="table-container-outer">
+                    <div class="table-container">
+                        <table id="summaryTable">
+                            <thead>
+                                <tr>
+                                    <th>Physical Interface</th>
+                                    <th>Total Bandwidth In</th>
+                                    <th>Total Bandwidth Out</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summaryTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+	<div style="text-align: center; margin-top: 30px; font-size: 0.8rem; color: #777;">
+		    Presented by CJDO
+	</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileListContainer = document.getElementById('fileList');
+        const generateBtn = document.getElementById('generateBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const tableBody = document.getElementById('tableBody');
+        const deviceInputs = document.querySelectorAll('input[name="device"]');
+        const summarySection = document.getElementById('summarySection');
+        const summaryTableBody = document.getElementById('summaryTableBody');
+        const grandTotalIn = document.getElementById('grandTotalIn');
+        const grandTotalOut = document.getElementById('grandTotalOut');
+        const exportBtn = document.getElementById('exportBtn');
+        const uploadText = document.getElementById('uploadText');
+
+        let selectedFiles = [];
+        let selectedDevice = null;
+        let parsedConfigData = []; // Store the parsed data for export
+
+        // Device selection
+        deviceInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                selectedDevice = this.value;
+                updateGenerateButton();
+            });
+        });
+
+        // Drag and drop functionality
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            // Filter only .txt files and add to selectedFiles array
+            const newFiles = Array.from(files).filter(file => file.name.endsWith('.txt'));
+            selectedFiles = [...selectedFiles, ...newFiles];
+
+            // Re-render the file list
+            renderFileList();
+            updateGenerateButton();
+        }
+
+        function renderFileList() {
+            fileListContainer.innerHTML = ''; // Clear existing list
+            
+            if (selectedFiles.length > 0) {
+                fileListContainer.classList.add('show');
+                dropZone.classList.add('has-multiple-files');
+                uploadText.textContent = `${selectedFiles.length} file(s) selected`;
+
+                selectedFiles.forEach((file, index) => {
+                    const listItem = document.createElement('div');
+                    listItem.classList.add('file-list-item');
+                    listItem.innerHTML = `
+                        <div class="file-icon">TXT</div>
+                        <div class="file-details">
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
+                        </div>
+                        <button class="remove-file" data-index="${index}">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+                            </svg>
+                        </button>
+                    `;
+                    fileListContainer.appendChild(listItem);
+                });
+
+                document.querySelectorAll('.remove-file').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent the drop zone click event from firing
+                        const index = e.target.closest('button').dataset.index;
+                        selectedFiles.splice(index, 1);
+                        renderFileList();
+                        updateGenerateButton();
+                        if (selectedFiles.length === 0) {
+                             clearResults();
+                        }
+                    });
+                });
+            } else {
+                fileListContainer.classList.remove('show');
+                dropZone.classList.remove('has-multiple-files');
+                uploadText.textContent = 'Drop your config file(s) here';
+            }
+        }
+
+        function clearResults() {
+             tableBody.innerHTML = '<tr><td colspan="12" class="no-data">Select device type and upload a configuration file to see results here</td></tr>';
+             resultsSection.classList.remove('show');
+             summarySection.style.display = 'none'; // Hide summary as well
+             exportBtn.style.display = 'none'; // Hide export button
+             parsedConfigData = []; // Clear stored data
+        }
+
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function updateGenerateButton() {
+            generateBtn.disabled = selectedFiles.length === 0 || !selectedDevice;
+        }
+
+        generateBtn.addEventListener('click', async function() {
+            if (selectedFiles.length === 0 || !selectedDevice) return;
+
+            loadingSpinner.classList.add('show');
+            resultsSection.classList.add('show');
+            exportBtn.style.display = 'none';
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Processing...';
+            
+            tableBody.innerHTML = '<tr><td colspan="12" class="no-data">Processing configuration files...</td></tr>';
+            summarySection.style.display = 'none';
+            parsedConfigData = []; // Reset parsed data array
+
+            try {
+                let allParsedData = [];
+
+                for (const file of selectedFiles) {
+                    const configContent = await readFileContent(file);
+                    let rawParsedData = [];
+
+                    // Parse based on device type
+                    if (selectedDevice === 'cisco') {
+                        rawParsedData = parseCiscoConfig(configContent, file.name);
+                    } else if (selectedDevice === 'huawei') {
+                        rawParsedData = parseHuaweiConfig(configContent, file.name);
+                    } else if (selectedDevice === 'juniper') {
+                        rawParsedData = parseJuniperConfig(configContent, file.name);
+                    }
+                    allParsedData.push(...rawParsedData);
+                }
+
+                // Apply dynamic filter:
+                parsedConfigData = allParsedData.filter(item => {
+                    if (item.Subinterface && (item.Subinterface.toLowerCase().startsWith('loopback') || item.Subinterface.toLowerCase().startsWith('lo'))) {
+                        return false;
+                    }
+                    return true;
+                });
+
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                loadingSpinner.classList.remove('show');
+
+                if (parsedConfigData.length > 0) {
+                    displayResults(parsedConfigData);
+                    const summary = generateSummary(parsedConfigData);
+                    displaySummary(summary);
+                    exportBtn.style.display = 'block';
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="12" class="no-data">No relevant service interfaces found or configuration format not recognized</td></tr>';
+                    summarySection.style.display = 'none';
+                }
+            } catch (error) {
+                loadingSpinner.classList.remove('show');
+                console.error("Error during parsing:", error);
+                tableBody.innerHTML = '<tr><td colspan="12" class="no-data">Error processing file. Please check file format.</td></tr>';
+                summarySection.style.display = 'none';
+                exportBtn.style.display = 'none';
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Summary';
+            }
+        });
+
+        function readFileContent(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        function displayResults(data) {
+            tableBody.innerHTML = '';
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="12" class="no-data">No relevant service interfaces found.</td></tr>';
+                return;
+            }
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                if (item.isShutdown) {
+                    row.classList.add('shutdown-row');
+                }
+
+                let primaryIpDisplay = '';
+                if (item.IPv4Address) {
+                    if (typeof item.IPv4Address === 'object' && item.IPv4Address !== null) {
+                        primaryIpDisplay = `${item.IPv4Address.address}${item.IPv4Address.isActive ? '' : ' (Deactivated)'}`;
+                    } else {
+                        primaryIpDisplay = item.IPv4Address;
+                    }
+                }
+                
+                let secondaryIpDisplay = '';
+                if (item.SecondaryIPv4Address && Array.isArray(item.SecondaryIPv4Address)) {
+                    if (item.SecondaryIPv4Address.length > 0 && typeof item.SecondaryIPv4Address[0] === 'object') {
+                        secondaryIpDisplay = item.SecondaryIPv4Address.map(ip => 
+                                                   `${ip.address}${ip.isActive ? '' : ' (Deactivated)'}`).join('<br>');
+                    } else {
+                        secondaryIpDisplay = item.SecondaryIPv4Address.join('<br>');
+                    }
+                }
+
+                row.innerHTML = `
+                    <td>${item.Source || ''}</td>
+                    <td>${item.Subinterface || ''}</td>
+                    <td>${item.ServiceID || ''}</td>
+                    <td>${item.Keterangan || ''}</td>
+                    <td>${item.VRF || ''}</td>
+                    <td>${primaryIpDisplay}</td>
+                    <td>${secondaryIpDisplay}</td>
+                    <td>${item.SVLAN || ''}</td>
+                    <td>${item.CVLAN || ''}</td>
+                    <td>${item.BandwidthIn || ''}</td>
+                    <td>${item.BandwidthOut || ''}</td>
+                    <td>${item.isShutdown ? 'YES' : 'NO'}</td> `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function convertBandwidthToKbps(bandwidthString) {
+            if (!bandwidthString) return 0;
+            const match = String(bandwidthString).match(/(\d+(?:\.\d+)?)(K|M|G)/i);
+            if (match) {
+                let value = parseFloat(match[1]);
+                const unit = match[2].toUpperCase();
+                if (unit === 'K') {
+                    return value;
+                } else if (unit === 'M') {
+                    return value * 1000;
+                } else if (unit === 'G') {
+                    return value * 1000 * 1000;
+                }
+            }
+            return 0;
+        }
+
+        function formatKbps(kbpsValue) {
+            if (kbpsValue === 0) return '0K';
+            if (kbpsValue < 1000) return `${kbpsValue}K`;
+            if (kbpsValue < 1000 * 1000) return `${(kbpsValue / 1000).toFixed(1).replace(/\.0$/, '')}M`;
+            return `${(kbpsValue / (1000 * 1000)).toFixed(1).replace(/\.0$/, '')}G`;
+        }
+
+        function generateSummary(parsedData) {
+            const interfaceSummary = {}; 
+            let grandTotalBandwidthIn = 0;
+            let grandTotalBandwidthOut = 0;
+
+            parsedData.forEach(item => {
+                if (item.isShutdown) {
+                    return;
+                }
+
+                const subinterfaceName = item.Subinterface;
+                const physicalInterface = subinterfaceName.split('.')[0]; 
+
+                if (!interfaceSummary[physicalInterface]) {
+                    interfaceSummary[physicalInterface] = {
+                        'PhysicalInterface': physicalInterface,
+                        'BandwidthInKbps': 0,
+                        'BandwidthOutKbps': 0
+                    };
+                }
+
+                const bandInKbps = convertBandwidthToKbps(item.BandwidthIn);
+                const bandOutKbps = convertBandwidthToKbps(item.BandwidthOut);
+
+                interfaceSummary[physicalInterface]['BandwidthInKbps'] += bandInKbps;
+                interfaceSummary[physicalInterface]['BandwidthOutKbps'] += bandOutKbps;
+
+                grandTotalBandwidthIn += bandInKbps;
+                grandTotalBandwidthOut += bandOutKbps;
+            });
+
+            const summaryData = [];
+            for (const key in interfaceSummary) {
+                summaryData.push({
+                    'PhysicalInterface': interfaceSummary[key]['PhysicalInterface'],
+                    'TotalBandwidthIn': formatKbps(interfaceSummary[key]['BandwidthInKbps']),
+                    'TotalBandwidthOut': formatKbps(interfaceSummary[key]['BandwidthOutKbps'])
+                });
+            }
+
+            summaryData.sort((a, b) => a.PhysicalInterface.localeCompare(b.PhysicalInterface));
+
+            return {
+                interfaceSummary: summaryData,
+                grandTotalBandwidthIn: formatKbps(grandTotalBandwidthIn),
+                grandTotalBandwidthOut: formatKbps(grandTotalBandwidthOut)
+            };
+        }
+
+        function displaySummary(summaryData) {
+            summaryTableBody.innerHTML = '';
+            if (summaryData.interfaceSummary.length > 0) {
+                summaryData.interfaceSummary.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.PhysicalInterface || ''}</td>
+                        <td>${item.TotalBandwidthIn || '0K'}</td>
+                        <td>${item.TotalBandwidthOut || '0K'}</td>
+                    `;
+                    summaryTableBody.appendChild(row);
+                });
+                grandTotalIn.textContent = summaryData.grandTotalBandwidthIn || '0K';
+                grandTotalOut.textContent = summaryData.grandTotalBandwidthOut || '0K'; 
+                summarySection.style.display = 'block';
+            } else {
+                summarySection.style.display = 'none';
+            }
+        }
+
+        function parseDescription(descriptionString) {
+            const cleanedDescription = descriptionString.trim().replace(/;$/, '');
+            let content = cleanedDescription;
+            const quotedMatch = cleanedDescription.match(/^["'](.*?)["']$/);
+            if (quotedMatch) {
+                content = quotedMatch[1];
+            }
+            const hyphenIndex = content.indexOf('-');
+            if (hyphenIndex !== -1 && hyphenIndex > 0 && hyphenIndex < content.length - 1) {
+                const serviceId = content.substring(0, hyphenIndex);
+                const keterangan = content.substring(hyphenIndex + 1);
+                return { serviceId: serviceId.trim(), keterangan: keterangan.trim() };
+            }
+            return { serviceId: '', keterangan: content.trim() };
+        }
+
+        function parseBandwidthFromPolicyName(policyName) {
+            if (!policyName) return '';
+            const match = policyName.match(/(\d+(?:\.\d+)?)(K|M|G)/i); 
+            if (match) {
+                let value = parseFloat(match[1]);
+                let unit = match[2].toUpperCase(); 
+                return `${value}${unit}`;
+            }
+            return ''; 
+        }
+
+        function parseCiscoConfig(configContent, sourceFileName) {
+            const lines = configContent.split('\n');
+            const data = [];
+            let currentInterface = null;
+            let currentData = {};
+            let inInterfaceBlock = false;
+            let inIgnoredTopLevelBlock = false;
+            let ignoredBlockIndentation = -1;
+
+            const topLevelIgnoredBlocks = [
+                /^router\s+(?:bgp|ospf|eigrp|rip)\s+\S*$/i,
+                /^ip\s+route\s+/i,
+                /^access-list\s+/i,
+                /^line\s+(?:con|vty|aux)\s+\S*$/i,
+                /^logging\s+/i,
+                /^ntp\s+/i,
+                /^snmp-server\s+/i,
+                /^banner\s+/i,
+                /^username\s+/i,
+                /^tacacs-server\s+/i,
+                /^radius-server\s+/i,
+                /^controller\s+/i,
+                /^vlan\s+database/i,
+                /^vlan\s+\d+$/i,
+                /^class-map\s+/i,
+                /^policy-map\s+/i,
+                /^ip\s+sla\s+/i,
+                /^track\s+/i,
+                /^ip\s+domain/i,
+                /^crypto\s+/i,
+                /^archive\s+/i,
+                /^parser\s+view/i,
+                /^redundancy\s+/i
+            ];
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const trimmedLine = line.trim();
+                const indentation = line.match(/^\s*/)[0].length;
+
+                let isTopLevelIgnoredBlockStart = false;
+                if (!inInterfaceBlock && !inIgnoredTopLevelBlock) {
+                    for (const pattern of topLevelIgnoredBlocks) {
+                        if (pattern.test(trimmedLine) && indentation === 0) {
+                            isTopLevelIgnoredBlockStart = true;
+                            inIgnoredTopLevelBlock = true;
+                            ignoredBlockIndentation = indentation;
+                            break;
+                        }
+                    }
+                }
+
+                if (inIgnoredTopLevelBlock) {
+                    if (trimmedLine === '!' && indentation <= ignoredBlockIndentation) {
+                        inIgnoredTopLevelBlock = false;
+                        ignoredBlockIndentation = -1;
+                    }
+                    continue;
+                }
+
+                const interfaceMatch = trimmedLine.match(
+                    /^(interface\s+(?:GigabitEthernet|Gi|G|Ethernet|Eth|E|FastEthernet|Fa|F|TenGigabitEthernet|Te|TwentyFiveGigE|FortyGigabitEthernet|HundredGigE|Loopback|Lo|Vlan|BDI|Port-channel|Po|Mgmt|Serial|Bundle-Ether)\S*)(\.\d+)?$/i
+                ); 
+                const isInterfaceStart = interfaceMatch && !trimmedLine.startsWith('!');
+
+                if (isInterfaceStart) {
+                    if (inInterfaceBlock && Object.keys(currentData).length > 0) {
+                        data.push(currentData);
+                    }
+                    currentInterface = interfaceMatch[1].replace('interface ', '');
+                    currentData = {
+                        'Source': sourceFileName,
+                        'Subinterface': currentInterface,
+                        'ServiceID': '',
+                        'Keterangan': '',
+                        'VRF': '',
+                        'IPv4Address': '',
+                        'SecondaryIPv4Address': [],
+                        'SVLAN': '',          
+                        'CVLAN': '',          
+                        'BandwidthIn': '',
+                        'BandwidthOut': '',
+                        'isShutdown': false 
+                    };
+                    inInterfaceBlock = true;
+                    continue;
+                } 
+                
+                if (inInterfaceBlock) {
+                    if (trimmedLine === '!') {
+                        if (Object.keys(currentData).length > 0) { 
+                            data.push(currentData);
+                        }
+                        inInterfaceBlock = false; 
+                        currentInterface = null; 
+                        currentData = {}; 
+                        continue;
+                    }
+
+                    const descriptionMatch = trimmedLine.match(/^description\s+(.+)$/);
+                    if (descriptionMatch) {
+                        const { serviceId, keterangan } = parseDescription(descriptionMatch[1]);
+                        currentData['ServiceID'] = serviceId;
+                        currentData['Keterangan'] = keterangan;
+                    } 
+
+                    const vrfMatch = trimmedLine.match(/^vrf(?:\s+forwarding)?\s+(\S+)$/);
+                    if (vrfMatch) {
+                        currentData['VRF'] = vrfMatch[1];
+                    }
+
+                    const primaryIpv4Match = trimmedLine.match(/^(ip|ipv4) address (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+(?:\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\/\d{1,2})$/);
+                    if (primaryIpv4Match) {
+                        currentData['IPv4Address'] = primaryIpv4Match[0].replace(/^(?:ip|ipv4) address\s+/, '');
+                    }
+
+                    const secondaryIpv4Match = trimmedLine.match(/^(ip|ipv4) address (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\s+(?:\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|\/\d{1,2}))\s+secondary$/);
+                    if (secondaryIpv4Match) {
+                        currentData['SecondaryIPv4Address'].push(secondaryIpv4Match[2]);
+                    }
+                    
+                    const encapMatch = trimmedLine.match(/^encapsulation dot1Q (\d+)(?: second-dot1q (\d+))?$/i); 
+                    if (encapMatch) {
+                        const detectedSVLAN = encapMatch[1];
+                        const detectedCVLAN = encapMatch[2];
+                        if (detectedCVLAN) {
+                            currentData['SVLAN'] = detectedSVLAN;
+                            currentData['CVLAN'] = detectedCVLAN;
+                        } else {
+                            currentData['SVLAN'] = '';
+                            currentData['CVLAN'] = detectedSVLAN;
+                        }
+                    }
+
+                    const policyInMatch = trimmedLine.match(/^service-policy input (\S+)$/);
+                    if (policyInMatch) {
+                        currentData['BandwidthIn'] = parseBandwidthFromPolicyName(policyInMatch[1]);
+                    }
+
+                    const policyOutMatch = trimmedLine.match(/^service-policy output (\S+)$/);
+                    if (policyOutMatch) {
+                        currentData['BandwidthOut'] = parseBandwidthFromPolicyName(policyOutMatch[1]);
+                    }
+
+                    if (trimmedLine === 'shutdown') {
+                        currentData['isShutdown'] = true;
+                    }
+                    if (trimmedLine === 'no shutdown') {
+                        currentData['isShutdown'] = false;
+                    }
+                }
+            }
+            if (inInterfaceBlock && Object.keys(currentData).length > 0) { 
+                data.push(currentData);
+            }
+            return data;
+        }
+
+		function parseHuaweiConfig(configContent, sourceFileName) {
+			const lines = configContent.split('\n');
+			const interfaces = [];
+			let currentInterface = null;
+
+			lines.forEach(line => {
+				line = line.trim();
+				if (line.startsWith('interface ')) {
+					if (currentInterface) {
+						interfaces.push(currentInterface);
+					}
+					currentInterface = {
+                        'Source': sourceFileName,
+						Subinterface: line.split(' ')[1],
+						ServiceID: '',
+						Keterangan: '',
+						VRF: [],
+						IPv4Address: '',
+						SecondaryIPv4Address: [],
+						SVLAN: '',
+						CVLAN: '',
+						BandwidthIn: '',
+						BandwidthOut: '',
+						isShutdown: false
+					};
+				} else if (currentInterface) {
+					if (line.startsWith('description ')) {
+						const fullDescription = line.substring('description '.length);
+						const firstHyphenIndex = fullDescription.indexOf('-');
+						if (firstHyphenIndex !== -1) {
+							currentInterface.ServiceID = fullDescription.substring(0, firstHyphenIndex);
+							currentInterface.Keterangan = fullDescription.substring(firstHyphenIndex + 1);
+						} else {
+							currentInterface.Keterangan = fullDescription;
+						}
+					}
+
+					if (line.startsWith('ip binding vpn-instance ')) {
+						currentInterface.VRF = [line.split(' ')[3]];
+					} else if (line.startsWith('evpl instance ')) {
+						const instanceId = line.split(' ')[2];
+						currentInterface.VRF.push(`evpl ${instanceId}`);
+					} else if (line.startsWith('bridge-domain ')) {
+						const domainId = line.split(' ')[1];
+						currentInterface.VRF.push(`bridge-domain ${domainId}`);
+					}
+
+					if (line.startsWith('ip address ')) {
+						const ipParts = line.substring('ip address '.length).trim().split(' ');
+						const ipAddressWithNetmask = `${ipParts[0]} ${ipParts[1]}`;
+						if (line.includes(' sub') || line.includes(' secondary')) {
+							currentInterface.SecondaryIPv4Address.push(ipAddressWithNetmask);
+						} else {
+							currentInterface.IPv4Address = ipAddressWithNetmask;
+						}
+					}
+
+					if (line.startsWith('qinq termination pe-vid ')) {
+						const parts = line.split(' ');
+						currentInterface.SVLAN = parts[3];
+						currentInterface.CVLAN = parts[5];
+					} else if (line.startsWith('vlan-type dot1q ')) {
+						currentInterface.CVLAN = line.split(' ')[2];
+						currentInterface.SVLAN = '';
+					}
+					else if (line.startsWith('encapsulation dot1q vid ')) {
+						const vidPart = line.substring('encapsulation dot1q vid '.length).trim();
+						const vlanIds = [];
+						if (vidPart.includes(' to ')) {
+							const [start, end] = vidPart.split(' to ').map(Number);
+							for (let i = start; i <= end; i++) {
+								vlanIds.push(i);
+							}
+						} else {
+							vlanIds.push(Number(vidPart));
+						}
+						if (currentInterface.CVLAN) {
+							currentInterface.CVLAN += `,${vlanIds.join(',')}`;
+						} else {
+							currentInterface.CVLAN = vlanIds.join(',');
+						}
+						currentInterface.SVLAN = '';
+					} else if (line.startsWith('encapsulation qinq vid ')) {
+						const parts = line.split(' ');
+						currentInterface.SVLAN = parts[3];
+						if (parts[5] === 'ce-vid') {
+							currentInterface.CVLAN = parts[6];
+						} else {
+							currentInterface.CVLAN = '';
+						}
+					}
+					if (line.startsWith('qos-profile ')) {
+						const bwMatch = line.match(/qos-profile (\d+[MKGT]?) (inbound|outbound)/);
+						if (bwMatch) {
+							const bandwidthValue = bwMatch[1];
+							const direction = bwMatch[2];
+							if (direction === 'inbound') {
+								currentInterface.BandwidthIn = bandwidthValue;
+							} else {
+								currentInterface.BandwidthOut = bandwidthValue;
+							}
+						}
+					}
+
+					if (line === 'shutdown') {
+						currentInterface.isShutdown = true;
+					} else if (line === 'undo shutdown') {
+						currentInterface.isShutdown = false;
+					}
+				}
+			});
+
+			if (currentInterface) {
+				interfaces.push(currentInterface);
+			}
+
+			interfaces.forEach(item => {
+				if (!item.CVLAN && item.SVLAN) {
+					item.CVLAN = item.SVLAN;
+					item.SVLAN = '';
+				}
+				if (Array.isArray(item.VRF) && item.VRF.length > 0) {
+					item.VRF = item.VRF.join(', ');
+				} else {
+					item.VRF = '';
+				}
+			});
+			return interfaces;
+		}
+
+        function parseJuniperConfig(configContent, sourceFileName) {
+            const lines = configContent.split('\n');
+            const interfacesData = new Map();
+
+            lines.forEach((line, index) => {
+                const trimmedLine = line.trim();
+                const interfaceUnitPattern = /^(set|deactivate|delete) interfaces ([a-zA-Z0-9\/\-\.]+)(?:\s+unit\s+(\d+))?/;
+                const match = trimmedLine.match(interfaceUnitPattern);
+
+                let subinterfaceKey = null;
+                let isSetCommand = false;
+                let isDeactivateCommand = false;
+                let isDeleteCommand = false;
+
+                if (match) {
+                    const commandType = match[1];
+                    let interfaceName = match[2];
+                    let unitId = match[3];
+                    
+                    subinterfaceKey = unitId ? `${interfaceName}.${unitId}` : interfaceName;
+                    
+                    isSetCommand = (commandType === 'set');
+                    isDeactivateCommand = (commandType === 'deactivate');
+                    isDeleteCommand = (commandType === 'delete');
+
+                    if (!interfacesData.has(subinterfaceKey)) {
+                        interfacesData.set(subinterfaceKey, {
+                            'Source': sourceFileName,
+                            'Subinterface': subinterfaceKey,
+                            'ServiceID': '',
+                            'Keterangan': '',
+                            'VRF': '',
+                            'IPv4Address': null,
+                            'SecondaryIPv4Address': [],
+                            'SVLAN': '',          
+                            'CVLAN': '',          
+                            'BandwidthIn': '',
+                            'BandwidthOut': '',
+                            'isShutdown': false
+                        });
+                    }
+                    const currentData = interfacesData.get(subinterfaceKey);
+
+                    if (isDeactivateCommand && trimmedLine.match(/^deactivate interfaces\s+[a-zA-Z0-9\/\-\.]+(?:\s+unit\s+\d+)?$/)) {
+                        currentData['isShutdown'] = true;
+                    } 
+                    else if (isSetCommand && trimmedLine.includes(' disable')) {
+                        const afterSetInterfacesPart = trimmedLine.substring(trimmedLine.indexOf('interfaces ') + 'interfaces '.length).trim();
+                        if (afterSetInterfacesPart.match(/^(?:[a-zA-Z0-9\/\-\.]+(?:\s+unit\s+\d+)?\s+)?disable$/)) {
+                             currentData['isShutdown'] = true;
+                        }
+                    } 
+                    else if (isDeleteCommand && (trimmedLine.includes(' disable') || trimmedLine.includes(' deactivate'))) {
+                        const afterDeleteInterfacesPart = trimmedLine.substring(trimmedLine.indexOf('interfaces ') + 'interfaces '.length).trim();
+                        if (afterDeleteInterfacesPart.match(/^(?:[a-zA-Z0-9\/\-\.]+(?:\s+unit\s+\d+)?\s+)?(?:disable|deactivate)$/)) {
+                            currentData['isShutdown'] = false;
+                        }
+                    }
+
+                    if (isSetCommand) {
+                        const setPartPrefix = match[0];
+                        const afterSetInterfacesPart = trimmedLine.substring(setPartPrefix.length).trim();
+                        
+                        const descriptionMatch = afterSetInterfacesPart.match(/^description\s+(.+)$/);
+                        if (descriptionMatch) {
+                            const { serviceId, keterangan } = parseDescription(descriptionMatch[1]);
+                            currentData['ServiceID'] = serviceId;
+                            currentData['Keterangan'] = keterangan;
+                        }
+
+                        const vlanIdMatch = afterSetInterfacesPart.match(/^vlan-id\s+(\d+)$/);
+                        const vlanTagsOuterMatch = afterSetInterfacesPart.match(/^vlan-tags outer\s+(\d+)$/);
+                        const vlanTagsInnerMatch = afterSetInterfacesPart.match(/^vlan-tags inner\s+(\d+)$/);
+
+                        if (vlanIdMatch) {
+                            currentData['SVLAN'] = ''; 
+                            currentData['CVLAN'] = vlanIdMatch[1];
+                        }
+                        if (vlanTagsOuterMatch) {
+                            currentData['SVLAN'] = vlanTagsOuterMatch[1];
+                        }
+                        if (vlanTagsInnerMatch) {
+                            currentData['CVLAN'] = vlanTagsInnerMatch[1];
+                        }
+                        
+                        if (afterSetInterfacesPart === 'encapsulation flexible-ethernet-services') {
+                        }
+
+
+                        const ipv4AddressMatch = afterSetInterfacesPart.match(/^family inet address (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})$/);
+                        if (ipv4AddressMatch) {
+                            const fullIp = ipv4AddressMatch[1];
+                            const ipObject = { address: fullIp, isActive: true };
+
+                            if (currentData['IPv4Address'] && currentData['IPv4Address'].address === fullIp) {
+                                currentData['IPv4Address'].isActive = true;
+                            } else {
+                                const existingSecondaryIndex = currentData['SecondaryIPv4Address'].findIndex(ip => ip.address === fullIp);
+                                if (existingSecondaryIndex !== -1) {
+                                    currentData['SecondaryIPv4Address'][existingSecondaryIndex].isActive = true;
+                                } else {
+                                    if (currentData['IPv4Address'] === null) {
+                                        currentData['IPv4Address'] = ipObject;
+                                    } else {
+                                        currentData['SecondaryIPv4Address'].push(ipObject);
+                                    }
+                                }
+                            }
+                        }
+
+                        const policerInMatch = afterSetInterfacesPart.match(/^family inet policer input (\S+)$/);
+                        if (policerInMatch) {
+                            currentData['BandwidthIn'] = parseBandwidthFromPolicyName(policerInMatch[1]);
+                        }
+                        const policerOutMatch = afterSetInterfacesPart.match(/^family inet policer output (\S+)$/);
+                        if (policerOutMatch) {
+                            currentData['BandwidthOut'] = parseBandwidthFromPolicyName(policerOutMatch[1]);
+                        }
+
+                        const vrfMatch1 = afterSetInterfacesPart.match(/^family inet routing-instance (\S+)$/);
+                        const vrfMatch2 = afterSetInterfacesPart.match(/^family inet vrf (\S+)$/);
+                        if (vrfMatch1) {
+                            currentData['VRF'] = vrfMatch1[1];
+                        } else if (vrfMatch2) {
+                            currentData['VRF'] = vrfMatch2[1];
+                        } else if (afterSetInterfacesPart === 'family inet vrf-table-label') {
+                            if (!currentData['VRF']) {
+                                currentData['VRF'] = 'VRF Enabled';
+                            }
+                        }
+                    } 
+                    
+                    else if (isDeactivateCommand) {
+                        const deactivateIpMatch = trimmedLine.match(/^deactivate interfaces\s+[a-zA-Z0-9\/\-\.]+(?:\s+unit\s+\d+)?\s+family inet address (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})$/);
+                        if (deactivateIpMatch) {
+                            const deactivatedIp = deactivateIpMatch[1];
+                            if (currentData['IPv4Address'] && currentData['IPv4Address'].address === deactivatedIp) {
+                                currentData['IPv4Address'].isActive = false;
+                            } else {
+                                const secondaryIp = currentData['SecondaryIPv4Address'].find(ip => ip.address === deactivatedIp);
+                                if (secondaryIp) {
+                                    secondaryIp.isActive = false;
+                                }
+                            }
+                        }
+                    }
+
+                    else if (isDeleteCommand) {
+                        const deleteIpMatch = trimmedLine.match(/^delete interfaces\s+[a-zA-Z0-9\/\-\.]+(?:\s+unit\s+\d+)?\s+family inet address (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/\d{1,2})$/);
+                        if (deleteIpMatch) {
+                            const deletedIp = deleteIpMatch[1];
+                            
+                            if (currentData['IPv4Address'] && currentData['IPv4Address'].address === deletedIp) {
+                                currentData['IPv4Address'] = null;
+                            } else {
+                                const initialSecondaryLength = currentData['SecondaryIPv4Address'].length;
+                                currentData['SecondaryIPv4Address'] = currentData['SecondaryIPv4Address'].filter(ip => ip.address !== deletedIp);
+                            }
+                        }
+                    }
+                }
+            });
+
+            return Array.from(interfacesData.values());
+        }
+
+
+        exportBtn.addEventListener('click', () => {
+            if (parsedConfigData.length === 0) {
+                alert("No data to export!");
+                return;
+            }
+
+            const worksheetData = [];
+            const headers = [
+                "Source", "Subinterface", "Service ID", "Description", "VRF",
+                "IPv4 Primary", "IPv4 Secondary", "SVLAN", "CVLAN",
+                "Bandwidth In", "Bandwidth Out", "Shutdown Flag"
+            ];
+            worksheetData.push(headers);
+
+            parsedConfigData.forEach(item => {
+                let primaryIpExport = '';
+                if (item.IPv4Address) {
+                    if (typeof item.IPv4Address === 'object' && item.IPv4Address !== null) {
+                        primaryIpExport = `${item.IPv4Address.address}${item.IPv4Address.isActive ? '' : ' (Deactivated)'}`;
+                    } else {
+                        primaryIpExport = item.IPv4Address;
+                    }
+                }
+                let secondaryIpExport = '';
+                if (item.SecondaryIPv4Address && Array.isArray(item.SecondaryIPv4Address)) {
+                    if (item.SecondaryIPv4Address.length > 0 && typeof item.SecondaryIPv4Address[0] === 'object') {
+                        secondaryIpExport = item.SecondaryIPv4Address.map(ip => 
+                                              `${ip.address}${ip.isActive ? '' : ' (Deactivated)'}`).join(', ');
+                    } else {
+                        secondaryIpExport = item.SecondaryIPv4Address.join(', ');
+                    }
+                }
+                worksheetData.push([
+                    item.Source || '',
+                    item.Subinterface || '',
+                    item.ServiceID || '',
+                    item.Keterangan || '',
+                    item.VRF || '',
+                    primaryIpExport,
+                    secondaryIpExport,
+                    item.SVLAN || '',
+                    item.CVLAN || '',
+                    item.BandwidthIn || '',
+                    item.BandwidthOut || '',
+                    item.isShutdown ? 'YES' : 'NO'
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+            XLSX.utils.book_append_sheet(wb, ws, "Interface Summary");
+            const filename = `Network_Config_Summary_${selectedDevice}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            XLSX.writeFile(wb, filename);
+        });
+    </script>
+</body>
+</html>
