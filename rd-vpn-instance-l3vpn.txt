@@ -406,3 +406,11 @@ ip vpn-instance NEW-CIMB-NIAGA
   vpn-target 65535:52067805 export-extcommunity
   vpn-target 65535:52067805 import-extcommunity
 #
+ip vpn-instance ADIRA-FINANCE
+ ipv4-family
+  route-distinguisher 65535:50431801
+  apply-label per-instance
+  vpn-target 65535:50431801 export-extcommunity
+  vpn-target 65535:50431801 import-extcommunity
+#
+
