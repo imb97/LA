@@ -3,113 +3,309 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>This is CJDO Page</title>
+    <title>CJDO Hub - Creative Tools</title>
+    <!-- Load Tailwind CSS untuk styling dasar dan responsivitas container -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* Menggunakan font Inter dari Tailwind */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            font-family: 'Inter', sans-serif;
+            /* Latar belakang sangat cerah dan bersahabat */
+            background-color: #f4f7f9; 
             min-height: 100vh;
             display: flex;
-            align-items: center;
+            /* align-items: flex-start untuk menempel di atas */
+            align-items: flex-start; 
             justify-content: center;
-            padding: 20px;
-            color: #333;
+            padding: 40px 20px; /* Jarak dari tepi atas dan samping */
         }
 
-        .container {
-            max-width: 400px;
-            width: 100%;
-            background: white;
-            padding: 40px 30px;
+        /* Container card utama: Dibuat transparan dan bayangan dihilangkan */
+        .main-card {
+            background-color: transparent; /* Menghilangkan warna putih */
+            border-radius: 16px;
+            box-shadow: none; /* Menghilangkan bayangan */
+        }
+
+        /* Canvas akan diatur ukurannya oleh JavaScript untuk responsivitas */
+        #menuCanvas {
+            cursor: pointer;
             border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
-
+        
+        /* Mengatur judul yang tetap tegas namun tidak terlalu mencolok */
         h1 {
-            text-align: center;
-            margin-bottom: 10px;
-            color: #2c3e50;
-            font-size: 28px;
-            font-weight: 600;
-        }
-
-        .subtitle {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #6c757d;
-            font-size: 16px;
-            font-style: italic;
-        }
-
-        .menu-list {
-            list-style: none;
-        }
-
-        .menu-item {
-            margin-bottom: 12px;
-        }
-
-        .menu-link {
-            display: block;
-            text-decoration: none;
-            color: #555;
-            padding: 15px 20px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .menu-link:hover {
-            background-color: #74b9ff;
-            color: white;
-            border-color: #74b9ff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(116, 185, 255, 0.3);
+            color: #1e293b; /* Slate 800 */
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Welcome to CJDO Page</h1>
-        <p class="subtitle">This is some simple tools for you</p>
-        <ul class="menu-list">
-            <!---
-            <li class="menu-item">
-                <a href="cjdo_schedule.html" class="menu-link" target="_blank">• Jadwal Tim CJDO</a>
-            </li>
-            <li class="menu-item">
-                <a href="cjdo_qos.html" class="menu-link" target="_blank">• QOS CJDO</a>
-            </li>
-            --->
-            <li class="menu-item">
-                <a href="adtran-config-parser.html" class="menu-link" target="_blank">• GPON Adtran Config Parser</a>
-            </li>
-            <li class="menu-item">
-                <a href="gpon_raisecom_config_generator.html" class="menu-link" target="_blank">• GPON Raisecom Config Generator</a>
-            </li>
-            <li class="menu-item">
-                <a href="PE-parsing-config-generator.html" class="menu-link" target="_blank">• PE Config Parser</a>
-            </li>
-            <li class="menu-item">
-                <a href="huawei-l3vpn-config-generator.html" class="menu-link" target="_blank">• Huawei L3VPN Config Generator</a>
-            </li>
-            <li class="menu-item">
-                <a href="srmpls-config-generator.html" class="menu-link" target="_blank">• Huawei EVPL Config Generator</a>
-            </li>
-            <li class="menu-item">
-                <a href="rd-vpn-instance-l3vpn.txt" class="menu-link" target="_blank">• Datek RD L3VPN SR-MPLS</a>
-            </li>
-            <li class="menu-item">
-                <a href="rd-vpn-instance-inet-lite.txt" class="menu-link" target="_blank">• Datek RD VPLS INET LITE di SR-MPLS</a>
-            </li>
-        </ul>
+<body class="p-4">
+
+    <!-- Container utama. padding disetel di CSS body. -->
+    <div class="max-w-5xl w-full main-card">
+        <h1 class="text-3xl font-bold text-center mb-2">CJDO Creative Tools & Utilities Hub</h1>
+        <p class="text-center text-gray-400 mb-8 italic">This is some simple tools for you.</p>
+        
+        <!-- Element Canvas tempat menu tile akan digambar -->
+        <canvas id="menuCanvas"></canvas>
+        
+        <!-- Pesan status/notifikasi klik -->
+        <div id="statusMessage" class="mt-4 text-center text-sm text-gray-500 font-medium hidden"></div>
     </div>
+
+    <script>
+        // Data menu item dengan palet warna pastel/muted yang lebih lembut
+        const menuItems = [
+            //{ title: "Jadwal Tim CJDO", url: "cjdo_schedule.html", color: "#67e8f9" },
+            //{ title: "QOS CJDO", url: "cjdo_qos.html", color: "#67e8f9" },
+            { title: "GPON Adtran Config Parser", url: "adtran-config-parser.html", color: "#67e8f9" }, 
+            { title: "GPON Raisecom Config Generator", url: "gpon_raisecom_config_generator.html", color: "#67e8f9" },
+            { title: "PE Config Parser", url: "PE-parsing-config-generator.html", color: "#67e8f9" },
+            { title: "Huawei L3VPN Config Generator", url: "huawei-l3vpn-config-generator.html", color: "#67e8f9" },
+            { title: "Huawei EVPL Config Generator", url: "srmpls-config-generator.html", color: "#67e8f9" },
+            { title: "Datek RD L3VPN SR-MPLS", url: "rd-vpn-instance-l3vpn.txt", color: "#67e8f9" },
+            { title: "Datek RD VPLS INET LITE di SR-MPLS", url: "rd-vpn-instance-inet-lite.txt", color: "#67e8f9" },
+            { title: "FORM PM AC Sentral", url: "https://forms.office.com/r/qXJ83y3pHB?origin=lprLink", color: "#67e8f9" }
+        ];
+
+        const canvas = document.getElementById('menuCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = canvas.parentElement;
+        const statusMessage = document.getElementById('statusMessage');
+
+        // Konstanta untuk tata letak
+        const PADDING = 20; 
+        const TILE_HEIGHT = 100; // Tinggi tile dikurangi sedikit
+        const GAP = 15; // Jarak antar tile
+        const BORDER_RADIUS = 10; 
+        let TILE_DATA = []; 
+
+        /**
+         * Menggambar kotak dengan sudut membulat (rounded rectangle) di Canvas.
+         */
+        function roundRect(x, y, w, h, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + w - radius, y);
+            ctx.arcTo(x + w, y, x + w, y + radius, radius);
+            ctx.lineTo(x + w, y + h - radius);
+            ctx.arcTo(x + w, y + h, x + w - radius, y + h, radius);
+            ctx.lineTo(x + radius, y + h);
+            ctx.arcTo(x, y + h, x, y + h - radius, radius);
+            ctx.lineTo(x, y + radius);
+            ctx.arcTo(x, y, x + radius, y, radius);
+            ctx.closePath();
+        }
+
+        /**
+         * Menentukan jumlah kolom berdasarkan lebar layar untuk responsivitas.
+         */
+        function getColumnCount(width) {
+            if (width >= 1024) return 3; 
+            if (width >= 640) return 2;  
+            return 1;                    
+        }
+
+        /**
+         * Menghitung tata letak semua tile dan mengatur ukuran Canvas.
+         */
+        function calculateLayout() {
+            const availableWidth = container.clientWidth; 
+            canvas.width = availableWidth;
+            const fullDrawingWidth = availableWidth - (2 * PADDING);
+
+            if (fullDrawingWidth <= 0) return; 
+
+            const numCols = getColumnCount(availableWidth);
+            const numItems = menuItems.length;
+            const numRows = Math.ceil(numItems / numCols);
+
+            const totalGapWidth = (numCols - 1) * GAP;
+            // Penting: Gunakan Math.floor untuk menghindari overflow sub-pixel
+            const tileWidth = Math.floor((fullDrawingWidth - totalGapWidth) / numCols); 
+            
+            // Hitung lebar total grid yang sebenarnya setelah pembulatan
+            const actualGridWidth = (numCols * tileWidth) + ((numCols - 1) * GAP);
+            
+            // Hitung sisa ruang yang akan dialokasikan sebagai margin kiri/kanan
+            const extraSpace = fullDrawingWidth - actualGridWidth;
+            
+            /* PERBAIKAN SENTRALISASI: Menggunakan Math.floor untuk memastikan grid 
+               dimulai dengan aman, bahkan jika ada sisa piksel ganjil. */
+            const start_x = Math.floor(PADDING + extraSpace / 2); 
+
+            const canvasHeight = (numRows * TILE_HEIGHT) + ((numRows - 1) * GAP) + (2 * PADDING);
+            canvas.height = canvasHeight;
+
+            TILE_DATA = menuItems.map((item, index) => {
+                const col = index % numCols;
+                const row = Math.floor(index / numCols);
+
+                // Menggunakan start_x yang telah disesuaikan untuk centering
+                const x = start_x + (col * (tileWidth + GAP));
+                const y = PADDING + (row * (TILE_HEIGHT + GAP)); // Selalu dimulai dari PADDING atas
+
+                return {
+                    ...item,
+                    x: x,
+                    y: y,
+                    width: tileWidth,
+                    height: TILE_HEIGHT,
+                    isHovered: false
+                };
+            });
+            drawTiles();
+        }
+
+        /**
+         * Menggambar semua tile menu.
+         */
+        function drawTiles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            TILE_DATA.forEach(tile => {
+                // Efek lift yang sangat halus
+                const lift = tile.isHovered ? 3 : 0; 
+                const x = tile.x;
+                const y = Math.round(tile.y - lift); 
+                const w = tile.width;
+                const h = tile.height;
+
+                // --- 1. Shadow (Ringan dan halus) ---
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+                ctx.shadowBlur = tile.isHovered ? 15 : 5; // Blur lebih kecil
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = tile.isHovered ? 6 : 3; // Geser kecil
+
+                // --- 2. Gambar Latar Belakang Tile (Sederhana: Putih atau Warna Solid Pastel) ---
+                roundRect(x, y, w, h, BORDER_RADIUS);
+                
+                if (tile.isHovered) {
+                    // Warna pastel solid saat hover
+                    ctx.fillStyle = tile.color;
+                } else {
+                    // Putih bersih saat default
+                    ctx.fillStyle = '#ffffff';
+                }
+                ctx.fill();
+
+                // --- 3. Gambar Border dan Reset Shadow ---
+                ctx.shadowBlur = 0; 
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+                
+                // Border halus saat default, border yang sama saat hover untuk kesan minimalis
+                ctx.strokeStyle = '#e5e7eb'; 
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // --- 4. Gambar Teks Judul ---
+                ctx.textAlign = 'center';
+                
+                const textContent = tile.title;
+                const lineHeight = 20; 
+                
+                // Warna teks selalu gelap agar kontras dan mudah dibaca (Putih vs Pastel)
+                ctx.fillStyle = '#1f2937'; 
+                ctx.font = '600 16px Inter'; 
+
+                // Word Wrap Logic (tetap sama)
+                const words = textContent.split(' ');
+                let line = '';
+                const lines = [];
+                const maxTextWidth = w * 0.8;
+
+                for(let n = 0; n < words.length; n++) {
+                    const testLine = line + words[n] + ' ';
+                    const metrics = ctx.measureText(testLine);
+                    const testWidth = metrics.width;
+                    if (testWidth > maxTextWidth && n > 0) {
+                        lines.push(line);
+                        line = words[n] + ' ';
+                    } else {
+                        line = testLine;
+                    }
+                }
+                lines.push(line);
+
+                // Hitung posisi Y awal untuk teks (di tengah vertikal)
+                const textYStart = Math.round(y + h / 2 - (lines.length - 1) * (lineHeight / 2) + 6);
+                
+                // Gambar setiap baris teks
+                lines.forEach((l, i) => {
+                    ctx.fillText(l.trim(), x + w / 2, textYStart + (i * lineHeight)); 
+                });
+            });
+        }
+
+        /**
+         * Menangani klik mouse pada Canvas.
+         */
+        function handleMouseClick(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            const clickedTile = TILE_DATA.find(tile => {
+                const lift = tile.isHovered ? 3 : 0; 
+                return x >= tile.x && x <= tile.x + tile.width &&
+                       y >= tile.y - lift && y <= tile.y - lift + tile.height;
+            });
+
+            if (clickedTile) {
+                statusMessage.textContent = `Membuka: ${clickedTile.title}...`;
+                statusMessage.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    window.open(clickedTile.url, '_blank');
+                    statusMessage.classList.add('hidden');
+                }, 100); 
+            }
+        }
+
+        /**
+         * Menangani pergerakan mouse untuk efek hover.
+         */
+        function handleMouseMove(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            
+            let needsRedraw = false;
+
+            TILE_DATA.forEach(tile => {
+                const lift = tile.isHovered ? 3 : 0; 
+                const isOver = x >= tile.x && x <= tile.x + tile.width &&
+                               y >= tile.y - lift && y <= tile.y - lift + tile.height;
+                
+                if (tile.isHovered !== isOver) {
+                    tile.isHovered = isOver;
+                    needsRedraw = true;
+                }
+            });
+
+            if (needsRedraw) {
+                drawTiles();
+            }
+        }
+
+        // Setup Event Listeners
+        window.addEventListener('load', calculateLayout);
+        window.addEventListener('resize', calculateLayout);
+        canvas.addEventListener('click', handleMouseClick);
+        canvas.addEventListener('mousemove', handleMouseMove);
+
+        // Tambahkan event touch untuk perangkat mobile (sentuh juga memicu klik)
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); 
+            const touch = e.touches[0];
+            handleMouseMove({ clientX: touch.clientX, clientY: touch.clientY }); 
+            setTimeout(() => handleMouseClick({ clientX: touch.clientX, clientY: touch.clientY }), 50);
+        }, false);
+        
+        // Panggil pertama kali untuk menggambar
+        calculateLayout();
+
+    </script>
 </body>
 </html>
