@@ -7,13 +7,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
-            --primary-color: #3b82f6; /* Biru Flat yang Modern */
-            --secondary-color: #f1f5f9; /* Background Super Light Gray */
-            --text-color: #1f2937; /* Dark Gray untuk teks */
+            --primary-color: #3b82f6;
+            --secondary-color: #f1f5f9;
+            --text-color: #1f2937;
             --card-bg: #ffffff;
             --border-radius-lg: 12px;
-            --success-color: #10b981; /* Hijau Flat */
+            --success-color: #10b981;
             --danger-color: #ef4444;
+            --warning-color: #f59e0b;
             --font-family: 'Inter', system-ui, sans-serif;
             --shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.08);
         }
@@ -54,7 +55,7 @@
             font-size: 0.95rem;
         }
 
-        input[type="number"], select {
+        input[type="text"], select {
             width: 100%;
             padding: 10px 12px;
             border: 1px solid #e5e7eb;
@@ -64,7 +65,7 @@
             background-color: #f9fafb;
         }
 
-        input[type="number"]:focus, select:focus {
+        input[type="text"]:focus, select:focus {
             border-color: var(--primary-color);
             outline: none;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
@@ -73,7 +74,7 @@
 
         .input-row {
             display: grid;
-            grid-template-columns: 2fr 1fr 2fr 1.5fr;
+            grid-template-columns: 4fr 2fr 1.5fr;
             gap: 20px;
             align-items: flex-end;
             margin-bottom: 25px;
@@ -105,8 +106,6 @@
         .btn-add:hover {
             background-color: #059669;
         }
-
-        /* Tombol Generate dihapus */
 
         .btn-copy {
             background-color: #6b7280;
@@ -188,16 +187,60 @@
             background-color: #b91c1c;
         }
 
-        .alert {
-            padding: 10px;
-            background-color: var(--success-color);
-            color: white;
-            border-radius: 6px;
-            text-align: center;
-            margin-bottom: 15px;
-            font-weight: 500;
-            display: none;
+        /* Hilangkan elemen validasi inline sebelumnya */
+        #validationMessage {
+            display: none !important;
         }
+
+        /* --- Style untuk Pop-up Notifikasi --- */
+        #notificationContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 350px;
+        }
+
+        .notification {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 10px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.5s, transform 0.5s;
+            display: flex;
+            align-items: center;
+            border-left: 5px solid;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left-color: var(--success-color);
+        }
+
+        .notification.warning {
+            border-left-color: var(--warning-color);
+        }
+        
+        .notification.error {
+            border-left-color: var(--danger-color);
+        }
+
+        .notification .icon {
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+
+        .notification.success .icon { color: var(--success-color); }
+        .notification.warning .icon { color: var(--warning-color); }
+        .notification.error .icon { color: var(--danger-color); }
         
         @media (max-width: 768px) {
             .container {
@@ -206,24 +249,27 @@
             .input-row {
                 grid-template-columns: 1fr;
             }
+            #notificationContainer {
+                top: auto;
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                max-width: unset;
+            }
         }
     </style>
 </head>
 <body>
+    
+    <div id="notificationContainer"></div>
+
     <div class="container">
         <h1>✨ Huawei Qos Profile Config Generator</h1>
         
         <div class="input-row">
             <div>
-                <label for="bandwidth">Bandwidth (Nilai):</label>
-                <input type="number" id="bandwidth" placeholder="e.g., 10 atau 512" value="" min="0.001">
-            </div>
-            <div>
-                <label for="bwUnit">Unit BW:</label>
-                <select id="bwUnit">
-                    <option value="mbps">Mbps</option>
-                    <option value="kbps">Kbps</option>
-                </select>
+                <label for="bandwidthList">Bandwidth List (e.g., 32K, 128M, 1G):</label>
+                <input type="text" id="bandwidthList" placeholder="Masukkan nilai BW dipisahkan koma jika lebih dari satu">
             </div>
             <div>
                 <label for="serviceCategory">Kategori Layanan:</label>
@@ -234,7 +280,7 @@
             </div>
             <div>
                 <button class="btn btn-add" onclick="addRequest()">
-                    <i class="fas fa-plus-circle"></i> Tambah ke Daftar
+                    <i class="fas fa-plus-circle"></i> Generate
                 </button>
             </div>
         </div>
@@ -246,10 +292,7 @@
 
         <div id="outputSection">
             <h2>Output Konfigurasi Gabungan (Otomatis Diperbarui)</h2>
-            <div id="copyAlert" class="alert">
-                <i class="fas fa-check-circle"></i> Config berhasil disalin ke clipboard!
-            </div>
-            <pre id="configResult">Daftar permintaan masih kosong. Tambahkan permintaan BW di atas.</pre>
+            <pre id="configResult">Daftar permintaan masih kosong.</pre>
             <button class="btn btn-copy" onclick="copyConfig()">
                 <i class="fas fa-copy"></i> Salin Config
             </button>
@@ -258,24 +301,71 @@
     </div>
 
     <script>
-        // Array untuk menyimpan semua permintaan konfigurasi
         let requests = [];
 
-        function convertToMbps(bwValue, unit) {
-            if (unit === 'kbps') {
-                return bwValue / 1000;
+        // --- Fungsi Notifikasi Pop-up ---
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('notificationContainer');
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            
+            let iconClass = '';
+            if (type === 'success') {
+                iconClass = 'fa-check-circle';
+            } else if (type === 'warning' || type === 'error') {
+                iconClass = 'fa-exclamation-triangle';
+            } else {
+                iconClass = 'fa-info-circle';
             }
-            return bwValue; // Sudah Mbps
+
+            notif.innerHTML = `
+                <i class="icon fas ${iconClass}"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(notif);
+
+            setTimeout(() => {
+                notif.classList.add('show');
+            }, 10); 
+
+            setTimeout(() => {
+                notif.classList.remove('show');
+                setTimeout(() => notif.remove(), 500); 
+            }, 5000); 
         }
 
-        function calculateQoS(bwValue, bwUnit, category) {
-            const bwMbps = convertToMbps(bwValue, bwUnit);
+        // --- Fungsi Parsing dan Perhitungan ---
+
+        function parseBWString(bwString) {
+            bwString = bwString.trim().toUpperCase();
+            if (!bwString) return null;
+
+            const valueMatch = bwString.match(/(\d+\.?\d*)/);
+            const unitMatch = bwString.match(/[KMG]$/); 
+
+            if (!valueMatch || !unitMatch) {
+                return { valid: false, reason: `Input BW '${bwString}' tidak memiliki unit (K, M, atau G) yang valid.` };
+            }
+
+            let value = parseFloat(valueMatch[1]);
+            let unit = unitMatch[0];
+            let bwMbps = value;
+
+            if (unit === 'K') {
+                bwMbps = value / 1000;
+            } else if (unit === 'G') {
+                bwMbps = value * 1000;
+            } 
+
+            return { valid: true, bwMbps: bwMbps, bwStringDisplay: bwString };
+        }
+
+        function calculateQoS(bwMbps, category) {
             
             let cir, pir, cbs, pbs;
             let profileName = '';
             const isLessThan1M = bwMbps < 1; 
-
-            // --- Logika Perhitungan CIR & Penamaan ---
 
             if (category === 'dedicated') {
                 let multiplier;
@@ -308,8 +398,6 @@
                 }
             }
 
-            // --- Perhitungan PIR, CBS, PBS ---
-            // Hasil perkalian dibulatkan tanpa koma (Math.round)
             pir = Math.round(cir * 1.25);
             cbs = Math.round(cir * 60);
             pbs = Math.round(cbs * 1.62);
@@ -334,50 +422,74 @@
                 let categoryName = req.category === 'dedicated' ? 'Dedicated' : 'Non-Dedicated';
 
                 itemEl.innerHTML = `
-                    <span>${categoryName} | BW: ${req.bwValue} ${req.bwUnit.toUpperCase()}</span>
+                    <span>${categoryName} | BW: ${req.bwStringDisplay}</span>
                     <button onclick="removeRequest(${index})"><i class="fas fa-trash-alt"></i> Hapus</button>
                 `;
                 listEl.appendChild(itemEl);
             });
         }
 
+        // --- Fungsi addRequest ---
         function addRequest() {
-            const bwInput = document.getElementById('bandwidth');
-            const unitInput = document.getElementById('bwUnit');
+            const bwListInput = document.getElementById('bandwidthList');
             const categoryInput = document.getElementById('serviceCategory');
             
-            const bwValue = parseFloat(bwInput.value);
-            const bwUnit = unitInput.value;
+            const bwListRaw = bwListInput.value;
             const category = categoryInput.value;
-
-            if (isNaN(bwValue) || bwValue <= 0) {
-                alert("Mohon masukkan Bandwidth (BW) yang valid (> 0).");
+            
+            if (!bwListRaw.trim()) {
+                showNotification("Mohon masukkan daftar Bandwidth.", 'warning');
                 return;
             }
 
-            // Hitung config untuk item yang baru ditambahkan
-            const configData = calculateQoS(bwValue, bwUnit, category);
+            const bwItems = bwListRaw.split(',').map(item => item.trim()).filter(item => item.length > 0);
+            
+            let itemsAdded = 0;
+            let invalidItems = [];
+            
+            bwItems.forEach(bwStr => {
+                const parsed = parseBWString(bwStr);
+                
+                if (parsed.valid && parsed.bwMbps > 0) {
+                    const configData = calculateQoS(parsed.bwMbps, category);
 
-            requests.push({
-                bwValue: bwValue,
-                bwUnit: bwUnit,
-                category: category,
-                config: configData.config
+                    requests.push({
+                        bwStringDisplay: parsed.bwStringDisplay, 
+                        bwMbps: parsed.bwMbps,
+                        category: category,
+                        config: configData.config
+                    });
+                    itemsAdded++;
+                } else if (!parsed.valid) {
+                    invalidItems.push(bwStr);
+                }
             });
             
+            if (itemsAdded > 0) {
+                let successMsg = `Berhasil menambahkan ${itemsAdded} item ke daftar.`;
+                if (invalidItems.length > 0) {
+                    successMsg += ` (${invalidItems.length} item tidak valid diabaikan.)`;
+                    showNotification(successMsg, 'warning');
+                } else {
+                    showNotification(successMsg, 'success');
+                }
+
+            } else if (invalidItems.length > 0) {
+                showNotification(`Gagal! Semua input BW tidak valid atau tidak memiliki unit (K, M, G). Cek: ${invalidItems.join(', ')}.`, 'error');
+                return;
+            }
+
             renderRequestList();
-            generateAllConfig(); // Pemicu otomatis
+            generateAllConfig();
             
-            // Reset input setelah ditambahkan
-            bwInput.value = '';
-            unitInput.value = 'mbps';
-            categoryInput.value = 'non-dedicated';
+            bwListInput.value = '';
         }
 
         function removeRequest(index) {
             requests.splice(index, 1);
             renderRequestList();
-            generateAllConfig(); // Pemicu otomatis
+            generateAllConfig();
+            showNotification("Item konfigurasi berhasil dihapus.", 'warning');
         }
 
         function generateAllConfig() {
@@ -396,27 +508,25 @@
             resultEl.textContent = combinedConfig.trim();
         }
 
+        // --- Fungsi copyConfig Diperbaiki ---
         function copyConfig() {
             const configText = document.getElementById('configResult').textContent;
-            const alertEl = document.getElementById('copyAlert');
             
             if (requests.length === 0 || configText === 'Daftar permintaan masih kosong. Tambahkan permintaan BW di atas.') {
-                alert("Tidak ada konfigurasi yang bisa disalin.");
+                showNotification("Tidak ada konfigurasi yang bisa disalin.", 'warning');
                 return;
             }
 
+            // Gunakan API Clipboard
             navigator.clipboard.writeText(configText).then(() => {
-                alertEl.style.display = 'block';
-                setTimeout(() => {
-                    alertEl.style.display = 'none';
-                }, 3000); 
+                // Notifikasi Pop-up hanya muncul JIKA salin berhasil
+                showNotification("Config berhasil disalin ke clipboard!", 'success');
             }).catch(err => {
                 console.error('Gagal menyalin: ', err);
-                alert("Gagal menyalin config. Pastikan browser Anda mengizinkan akses clipboard.");
+                showNotification("Gagal menyalin config. Pastikan browser Anda mengizinkan akses clipboard.", 'error');
             });
         }
 
-        // Inisialisasi tampilan saat pertama kali dimuat
         window.onload = () => {
             renderRequestList();
             generateAllConfig();
