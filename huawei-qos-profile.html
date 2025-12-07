@@ -228,8 +228,8 @@
             <div>
                 <label for="serviceCategory">Kategori Layanan:</label>
                 <select id="serviceCategory">
-                    <option value="dedicated">Internet Dedicated</option>
                     <option value="non-dedicated">Non Internet Dedicated</option>
+                    <option value="dedicated">Internet Dedicated</option>
                 </select>
             </div>
             <div>
@@ -371,7 +371,7 @@
             // Reset input setelah ditambahkan
             bwInput.value = '';
             unitInput.value = 'mbps';
-            categoryInput.value = 'dedicated';
+            categoryInput.value = 'non-dedicated';
         }
 
         function removeRequest(index) {
