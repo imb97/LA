@@ -264,12 +264,12 @@
     <div id="notificationContainer"></div>
 
     <div class="container">
-        <h1>✨ Huawei Qos Profile Config Generator</h1>
+        <h1>Huawei Qos-Profile Config Generator</h1>
         
         <div class="input-row">
             <div>
-                <label for="bandwidthList">Bandwidth List (e.g., 32K, 128M, 1G):</label>
-                <input type="text" id="bandwidthList" placeholder="Masukkan nilai BW dipisahkan koma jika lebih dari satu">
+                <label for="bandwidthList">Bandwidth List (e.g., 32K, 4M, 1G):</label>
+                <input type="text" id="bandwidthList" placeholder="Masukkan nilai BW, jika lebih dari 1 dipisahkan dengan tanda koma">
             </div>
             <div>
                 <label for="serviceCategory">Kategori Layanan:</label>
@@ -280,7 +280,7 @@
             </div>
             <div>
                 <button class="btn btn-add" onclick="addRequest()">
-                    <i class="fas fa-plus-circle"></i> Generate
+                    <i class="fas fa-plus-circle"></i> Tambah Semua
                 </button>
             </div>
         </div>
@@ -335,7 +335,7 @@
             }, 5000); 
         }
 
-        // --- Fungsi Parsing dan Perhitungan ---
+        // --- Fungsi Parsing Input (Strict Unit) ---
 
         function parseBWString(bwString) {
             bwString = bwString.trim().toUpperCase();
@@ -351,15 +351,21 @@
             let value = parseFloat(valueMatch[1]);
             let unit = unitMatch[0];
             let bwMbps = value;
+            let displayString = bwString; // Default: e.g. 5M, 512K
 
             if (unit === 'K') {
                 bwMbps = value / 1000;
             } else if (unit === 'G') {
                 bwMbps = value * 1000;
+                // Konversi G ke M untuk display
+                displayString = `${value * 1000}M`; 
             } 
+            // Jika unit 'M', bwMbps = value, displayString = bwString
 
-            return { valid: true, bwMbps: bwMbps, bwStringDisplay: bwString };
+            return { valid: true, bwMbps: bwMbps, bwStringDisplay: displayString };
         }
+        
+        // --- Fungsi Perhitungan QoS (Akutasi Penamaan) ---
 
         function calculateQoS(bwMbps, category) {
             
@@ -367,37 +373,41 @@
             let profileName = '';
             const isLessThan1M = bwMbps < 1; 
 
-            if (category === 'dedicated') {
-                let multiplier;
-                if (bwMbps < 1000) {
-                    multiplier = 1.10;
+            // --- 1. Logika Penentuan NAMA PROFIL (TIDAK DIBULATKAN SIGNIFIKAN) ---
+            if (isLessThan1M) {
+                // Jika < 1M, gunakan K (misal: 420K). Dibulatkan ke integer Kbps.
+                let bwKbps = Math.round(bwMbps * 1000); 
+                profileName = (category === 'dedicated') ? `INET-${bwKbps}K` : `${bwKbps}K`;
+                
+            } else {
+                // Jika >= 1M, gunakan M. Penamaan akurat (4.2M, bukan 4M).
+                let bwName;
+                // Cek apakah BW memiliki desimal
+                if (bwMbps % 1 !== 0) {
+                    // Jika ada desimal, tampilkan 1 angka di belakang koma (misal: 4.2)
+                    bwName = bwMbps.toFixed(1); 
                 } else {
-                    multiplier = 1.05;
+                    // Jika bilangan bulat (misal: 10.0), tampilkan tanpa desimal (misal: 10)
+                    bwName = Math.round(bwMbps); 
                 }
-
-                if (isLessThan1M) {
-                    let bwKbps = Math.round(bwMbps * 1000);
-                    cir = Math.round((bwMbps * 1024) * multiplier); 
-                    profileName = `INET-${bwKbps}K`;
-                } else {
-                    let bwName = Math.round(bwMbps);
-                    cir = Math.round((bwMbps * 1024) * multiplier);
-                    profileName = `INET-${bwName}M`;
-                }
-
-            } else if (category === 'non-dedicated') {
-                if (isLessThan1M) {
-                    let bwKbps = Math.round(bwMbps * 1000);
-                    cir = Math.round(bwMbps * 1024);
-                    profileName = `${bwKbps}K`;
-
-                } else {
-                    let bwName = Math.round(bwMbps);
-                    cir = Math.round(bwMbps * 1024);
-                    profileName = `${bwName}M`;
-                }
+                
+                profileName = (category === 'dedicated') ? `INET-${bwName}M` : `${bwName}M`;
             }
 
+            // --- 2. Logika PERHITUNGAN CIR/PIR/CBS/PBS (DIBULATKAN KE BILANGAN BULAT) ---
+            
+            // Perhitungan CIR
+            if (category === 'dedicated') {
+                let multiplier = (bwMbps < 1000) ? 1.10 : 1.05;
+                // CIR DIBULATKAN
+                cir = Math.round((bwMbps * 1024) * multiplier); 
+
+            } else if (category === 'non-dedicated') {
+                 // CIR DIBULATKAN
+                cir = Math.round(bwMbps * 1024);
+            }
+            
+            // Perhitungan PIR, CBS, PBS (TETAP DIBULATKAN)
             pir = Math.round(cir * 1.25);
             cbs = Math.round(cir * 60);
             pbs = Math.round(cbs * 1.62);
@@ -468,14 +478,14 @@
             if (itemsAdded > 0) {
                 let successMsg = `Berhasil menambahkan ${itemsAdded} item ke daftar.`;
                 if (invalidItems.length > 0) {
-                    successMsg += ` (${invalidItems.length} item tidak valid diabaikan.)`;
+                    successMsg += ` (${invalidItems.length} item tidak valid diabaikan: ${invalidItems.join(', ')}.)`;
                     showNotification(successMsg, 'warning');
                 } else {
                     showNotification(successMsg, 'success');
                 }
 
             } else if (invalidItems.length > 0) {
-                showNotification(`Gagal! Semua input BW tidak valid atau tidak memiliki unit (K, M, G). Cek: ${invalidItems.join(', ')}.`, 'error');
+                showNotification(`Gagal! Semua input BW tidak valid. Cek: ${invalidItems.join(', ')}. Unit harus K, M, atau G.`, 'error');
                 return;
             }
 
@@ -508,7 +518,6 @@
             resultEl.textContent = combinedConfig.trim();
         }
 
-        // --- Fungsi copyConfig Diperbaiki ---
         function copyConfig() {
             const configText = document.getElementById('configResult').textContent;
             
@@ -517,9 +526,7 @@
                 return;
             }
 
-            // Gunakan API Clipboard
             navigator.clipboard.writeText(configText).then(() => {
-                // Notifikasi Pop-up hanya muncul JIKA salin berhasil
                 showNotification("Config berhasil disalin ke clipboard!", 'success');
             }).catch(err => {
                 console.error('Gagal menyalin: ', err);
