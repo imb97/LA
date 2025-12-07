@@ -1,0 +1,527 @@
+qos-profile 32K
+car cir 33 pir 41 cbs 1980 pbs 3208
+#
+
+qos-profile 64K
+car cir 66 pir 83 cbs 3960 pbs 6415
+#
+
+qos-profile 128K
+car cir 131 pir 164 cbs 7860 pbs 12733
+#
+
+qos-profile 256K
+car cir 262 pir 328 cbs 15720 pbs 25466
+#
+
+qos-profile 512K
+car cir 524 pir 655 cbs 31440 pbs 50933
+#
+
+qos-profile 768K
+car cir 786 pir 983 cbs 47160 pbs 76399
+#
+
+qos-profile 1M
+car cir 1024 pir 1280 cbs 61440 pbs 99533
+#
+
+qos-profile 2M
+car cir 2048 pir 2560 cbs 122880 pbs 199066
+#
+
+qos-profile 3M
+car cir 3072 pir 3840 cbs 184320 pbs 298598
+#
+
+qos-profile 4M
+car cir 4096 pir 5120 cbs 245760 pbs 398131
+#
+
+qos-profile 5M
+car cir 5120 pir 6400 cbs 307200 pbs 497664
+#
+
+qos-profile 6M
+car cir 6144 pir 7680 cbs 368640 pbs 597197
+#
+
+qos-profile 7M
+car cir 7168 pir 8960 cbs 430080 pbs 696730
+#
+
+qos-profile 8M
+car cir 8192 pir 10240 cbs 491520 pbs 796262
+#
+
+qos-profile 9M
+car cir 9216 pir 11520 cbs 552960 pbs 895795
+#
+
+qos-profile 10M
+car cir 10240 pir 12800 cbs 614400 pbs 995328
+#
+
+qos-profile 12M
+car cir 12288 pir 15360 cbs 737280 pbs 1194394
+#
+
+qos-profile 15M
+car cir 15360 pir 19200 cbs 921600 pbs 1492992
+#
+
+qos-profile 16M
+car cir 16384 pir 20480 cbs 983040 pbs 1592525
+#
+
+qos-profile 20M
+car cir 20480 pir 25600 cbs 1228800 pbs 1990656
+#
+
+qos-profile 24M
+car cir 24576 pir 30720 cbs 1474560 pbs 2388787
+#
+
+qos-profile 25M
+car cir 25600 pir 32000 cbs 1536000 pbs 2488320
+#
+
+qos-profile 30M
+car cir 30720 pir 38400 cbs 1843200 pbs 2985984
+#
+
+qos-profile 35M
+car cir 35840 pir 44800 cbs 2150400 pbs 3483648
+#
+
+qos-profile 40M
+car cir 40960 pir 51200 cbs 2457600 pbs 3981312
+#
+
+qos-profile 45M
+car cir 46080 pir 57600 cbs 2764800 pbs 4478976
+#
+
+qos-profile 50M
+car cir 51200 pir 64000 cbs 3072000 pbs 4976640
+#
+
+qos-profile 60M
+car cir 61440 pir 76800 cbs 3686400 pbs 5971968
+#
+
+qos-profile 70M
+car cir 71680 pir 89600 cbs 4300800 pbs 6967296
+#
+
+qos-profile 80M
+car cir 81920 pir 102400 cbs 4915200 pbs 7962624
+#
+
+qos-profile 90M
+car cir 92160 pir 115200 cbs 5529600 pbs 8957952
+#
+
+qos-profile 100M
+car cir 102400 pir 128000 cbs 6144000 pbs 9953280
+#
+
+qos-profile 150M
+car cir 153600 pir 192000 cbs 9216000 pbs 14929920
+#
+
+qos-profile 200M
+car cir 204800 pir 256000 cbs 12288000 pbs 19906560
+#
+
+qos-profile 250M
+car cir 256000 pir 320000 cbs 15360000 pbs 24883200
+#
+
+qos-profile 300M
+car cir 307200 pir 384000 cbs 18432000 pbs 29859840
+#
+
+qos-profile 350M
+car cir 358400 pir 448000 cbs 21504000 pbs 34836480
+#
+
+qos-profile 400M
+car cir 409600 pir 512000 cbs 24576000 pbs 39813120
+#
+
+qos-profile 450M
+car cir 460800 pir 576000 cbs 27648000 pbs 44789760
+#
+
+qos-profile 500M
+car cir 512000 pir 640000 cbs 30720000 pbs 49766400
+#
+
+qos-profile 600M
+car cir 614400 pir 768000 cbs 36864000 pbs 59719680
+#
+
+qos-profile 700M
+car cir 716800 pir 896000 cbs 43008000 pbs 69672960
+#
+
+qos-profile 800M
+car cir 819200 pir 1024000 cbs 49152000 pbs 79626240
+#
+
+qos-profile 900M
+car cir 921600 pir 1152000 cbs 55296000 pbs 89579520
+#
+
+qos-profile 1G
+car cir 1024000 pir 1280000 cbs 61440000 pbs 99532800
+#
+
+qos-profile 1.2G
+car cir 1228800 pir 1536000 cbs 73728000 pbs 119439360
+#
+
+qos-profile 1.3G
+car cir 1331200 pir 1664000 cbs 79872000 pbs 129392640
+#
+
+qos-profile 1.5G
+car cir 1536000 pir 1920000 cbs 92160000 pbs 149299200
+#
+
+qos-profile 2G
+car cir 2048000 pir 2560000 cbs 122880000 pbs 199065600
+#
+
+qos-profile 2.5G
+car cir 2560000 pir 3200000 cbs 153600000 pbs 248832000
+#
+
+qos-profile 3G
+car cir 3072000 pir 3840000 cbs 184320000 pbs 298598400
+#
+
+qos-profile 3.5G
+car cir 3584000 pir 4480000 cbs 215040000 pbs 348364800
+#
+
+qos-profile 4G
+car cir 4096000 pir 5120000 cbs 245760000 pbs 398131200
+#
+
+qos-profile 4.5G
+car cir 4608000 pir 5760000 cbs 276480000 pbs 447897600
+#
+
+qos-profile 5G
+car cir 5120000 pir 6400000 cbs 307200000 pbs 497664000
+#
+
+qos-profile 6G
+car cir 6144000 pir 7680000 cbs 368640000 pbs 597196800
+#
+
+qos-profile 7G
+car cir 7168000 pir 8960000 cbs 430080000 pbs 696729600
+#
+
+qos-profile 8G
+car cir 8192000 pir 10240000 cbs 491520000 pbs 796262400
+#
+
+qos-profile 9G
+car cir 9216000 pir 11520000 cbs 552960000 pbs 895795200
+#
+
+qos-profile 10G
+car cir 10240000 pir 12800000 cbs 614400000 pbs 995328000
+#
+
+qos-profile 15G
+car cir 15360000 pir 19200000 cbs 921600000 pbs 1492992000
+#
+
+qos-profile 20G
+car cir 20480000 pir 25600000 cbs 1228800000 pbs 1990656000
+#
+
+qos-profile 30G
+car cir 30720000 pir 38400000 cbs 1843200000 pbs 2985984000
+#
+
+qos-profile 40G
+car cir 40960000 pir 51200000 cbs 2457600000 pbs 3981312000
+#
+
+qos-profile 50G
+car cir 51200000 pir 64000000 cbs 3072000000 pbs 4976640000
+#
+
+qos-profile 100G
+car cir 102400000 pir 128000000 cbs 6144000000 pbs 9953280000
+#
+
+qos-profile INET-32K
+car cir 36 pir 45 cbs 2160 pbs 3499
+#
+
+qos-profile INET-64K
+car cir 72 pir 90 cbs 4320 pbs 6998
+#
+
+qos-profile INET-128K
+car cir 144 pir 180 cbs 8640 pbs 13997
+#
+
+qos-profile INET-256K
+car cir 288 pir 360 cbs 17280 pbs 27994
+#
+
+qos-profile INET-512K
+car cir 577 pir 721 cbs 34620 pbs 56084
+#
+
+qos-profile INET-768K
+car cir 865 pir 1081 cbs 51900 pbs 84078
+#
+
+qos-profile INET-1M
+car cir 1126 pir 1408 cbs 67560 pbs 109447
+#
+
+qos-profile INET-2M
+car cir 2253 pir 2816 cbs 135180 pbs 218992
+#
+
+qos-profile INET-3M
+car cir 3379 pir 4224 cbs 202740 pbs 328439
+#
+
+qos-profile INET-4M
+car cir 4506 pir 5633 cbs 270360 pbs 437983
+#
+
+qos-profile INET-5M
+car cir 5632 pir 7040 cbs 337920 pbs 547430
+#
+
+qos-profile INET-6M
+car cir 6758 pir 8448 cbs 405480 pbs 656878
+#
+
+qos-profile INET-7M
+car cir 7885 pir 9856 cbs 473100 pbs 766422
+#
+
+qos-profile INET-8M
+car cir 9011 pir 11264 cbs 540660 pbs 875869
+#
+
+qos-profile INET-9M
+car cir 10138 pir 12673 cbs 608280 pbs 985414
+#
+
+qos-profile INET-10M
+car cir 11264 pir 14080 cbs 675840 pbs 1094861
+#
+
+qos-profile INET-12M
+car cir 13517 pir 16896 cbs 811020 pbs 1313852
+#
+
+qos-profile INET-15M
+car cir 16896 pir 21120 cbs 1013760 pbs 1642291
+#
+
+qos-profile INET-16M
+car cir 18022 pir 22528 cbs 1081320 pbs 1751738
+#
+
+qos-profile INET-20M
+car cir 22528 pir 28160 cbs 1351680 pbs 2189722
+#
+
+qos-profile INET-24M
+car cir 27034 pir 33793 cbs 1622040 pbs 2627705
+#
+
+qos-profile INET-25M
+car cir 28160 pir 35200 cbs 1689600 pbs 2737152
+#
+
+qos-profile INET-30M
+car cir 33792 pir 42240 cbs 2027520 pbs 3284582
+#
+
+qos-profile INET-35M
+car cir 39424 pir 49280 cbs 2365440 pbs 3832013
+#
+
+qos-profile INET-40M
+car cir 45056 pir 56320 cbs 2703360 pbs 4379443
+#
+
+qos-profile INET-45M
+car cir 50688 pir 63360 cbs 3041280 pbs 4926874
+#
+
+qos-profile INET-50M
+car cir 56320 pir 70400 cbs 3379200 pbs 5474304
+#
+
+qos-profile INET-60M
+car cir 67584 pir 84480 cbs 4055040 pbs 6569165
+#
+
+qos-profile INET-70M
+car cir 78848 pir 98560 cbs 4730880 pbs 7664026
+#
+
+qos-profile INET-80M
+car cir 90112 pir 112640 cbs 5406720 pbs 8758886
+#
+
+qos-profile INET-90M
+car cir 101376 pir 126720 cbs 6082560 pbs 9853747
+#
+
+qos-profile INET-100M
+car cir 112640 pir 140800 cbs 6758400 pbs 10948608
+#
+
+qos-profile INET-150M
+car cir 168960 pir 211200 cbs 10137600 pbs 16422912
+#
+
+qos-profile INET-200M
+car cir 225280 pir 281600 cbs 13516800 pbs 21897216
+#
+
+qos-profile INET-250M
+car cir 281600 pir 352000 cbs 16896000 pbs 27371520
+#
+
+qos-profile INET-300M
+car cir 337920 pir 422400 cbs 20275200 pbs 32845824
+#
+
+qos-profile INET-350M
+car cir 394240 pir 492800 cbs 23654400 pbs 38320128
+#
+
+qos-profile INET-400M
+car cir 450560 pir 563200 cbs 27033600 pbs 43794432
+#
+
+qos-profile INET-450M
+car cir 506880 pir 633600 cbs 30412800 pbs 49268736
+#
+
+qos-profile INET-500M
+car cir 563200 pir 704000 cbs 33792000 pbs 54743040
+#
+
+qos-profile INET-600M
+car cir 675840 pir 844800 cbs 40550400 pbs 65691648
+#
+
+qos-profile INET-700M
+car cir 788480 pir 985600 cbs 47308800 pbs 76640256
+#
+
+qos-profile INET-800M
+car cir 901120 pir 1126400 cbs 54067200 pbs 87588864
+#
+
+qos-profile INET-900M
+car cir 1013760 pir 1267200 cbs 60825600 pbs 98537472
+#
+
+qos-profile INET-1G
+car cir 1075200 pir 1344000 cbs 64512000 pbs 104509440
+#
+
+qos-profile INET-1.2G
+car cir 1290240 pir 1612800 cbs 77414400 pbs 125411328
+#
+
+qos-profile INET-1.3G
+car cir 1397760 pir 1747200 cbs 83865600 pbs 135862272
+#
+
+qos-profile INET-1.5G
+car cir 1612800 pir 2016000 cbs 96768000 pbs 156764160
+#
+
+qos-profile INET-2G
+car cir 2150400 pir 2688000 cbs 129024000 pbs 209018880
+#
+
+qos-profile INET-2.5G
+car cir 2688000 pir 3360000 cbs 161280000 pbs 261273600
+#
+
+qos-profile INET-3G
+car cir 3225600 pir 4032000 cbs 193536000 pbs 313528320
+#
+
+qos-profile INET-3.5G
+car cir 3763200 pir 4704000 cbs 225792000 pbs 365783040
+#
+
+qos-profile INET-4G
+car cir 4300800 pir 5376000 cbs 258048000 pbs 418037760
+#
+
+qos-profile INET-4.5G
+car cir 4838400 pir 6048000 cbs 290304000 pbs 470292480
+#
+
+qos-profile INET-5G
+car cir 5376000 pir 6720000 cbs 322560000 pbs 522547200
+#
+
+qos-profile INET-6G
+car cir 6451200 pir 8064000 cbs 387072000 pbs 627056640
+#
+
+qos-profile INET-7G
+car cir 7526400 pir 9408000 cbs 451584000 pbs 731566080
+#
+
+qos-profile INET-8G
+car cir 8601600 pir 10752000 cbs 516096000 pbs 836075520
+#
+
+qos-profile INET-9G
+car cir 9676800 pir 12096000 cbs 580608000 pbs 940584960
+#
+
+qos-profile INET-10G
+car cir 10752000 pir 13440000 cbs 645120000 pbs 1045094400
+#
+
+qos-profile INET-15G
+car cir 16128000 pir 20160000 cbs 967680000 pbs 1567641600
+#
+
+qos-profile INET-20G
+car cir 21504000 pir 26880000 cbs 1290240000 pbs 2090188800
+#
+
+qos-profile INET-30G
+car cir 32256000 pir 40320000 cbs 1935360000 pbs 3135283200
+#
+
+qos-profile INET-40G
+car cir 43008000 pir 53760000 cbs 2580480000 pbs 4180377600
+#
+
+qos-profile INET-50G
+car cir 53760000 pir 67200000 cbs 3225600000 pbs 5225472000
+#
+
+qos-profile INET-100G
+car cir 107520000 pir 134400000 cbs 6451200000 pbs 10450944000
+#
