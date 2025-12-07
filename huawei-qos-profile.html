@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huawei QoS Profile Config Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3b82f6; /* Biru Flat yang Modern */
+            --secondary-color: #f1f5f9; /* Background Super Light Gray */
+            --text-color: #1f2937; /* Dark Gray untuk teks */
+            --card-bg: #ffffff;
+            --border-radius-lg: 12px;
+            --success-color: #10b981; /* Hijau Flat */
+            --danger-color: #ef4444;
+            --font-family: 'Inter', system-ui, sans-serif;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 30px 10px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 35px;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 950px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #4b5563;
+            font-size: 0.95rem;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #f9fafb;
+        }
+
+        input[type="number"]:focus, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+            background-color: var(--card-bg);
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 2fr 1.5fr;
+            gap: 20px;
+            align-items: flex-end;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            color: white;
+            padding: 11px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn-add {
+            background-color: var(--success-color);
+        }
+
+        .btn-add:hover {
+            background-color: #059669;
+        }
+
+        /* Tombol Generate dihapus */
+
+        .btn-copy {
+            background-color: #6b7280;
+            margin-top: 15px;
+        }
+
+        .btn-copy:hover {
+            background-color: #4b5563;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        #outputSection {
+            margin-top: 35px;
+            padding: 20px;
+            background-color: #e2e8f0;
+            border-radius: var(--border-radius-lg);
+            border: 1px solid #cbd5e1;
+        }
+
+        #outputSection h2 {
+            margin-top: 0;
+            color: #1f2937;
+            font-size: 1.25rem;
+        }
+
+        #outputSection pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Consolas', 'Courier New', monospace;
+            margin: 10px 0 0 0;
+            padding: 15px;
+            background-color: #1e293b;
+            color: #d1d5db;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            min-height: 150px;
+            overflow-x: auto;
+        }
+        
+        #inputList {
+            padding: 15px 0;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 15px;
+        }
+
+        .config-item {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .config-item span {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .config-item button {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        .config-item button:hover {
+            background-color: #b91c1c;
+        }
+
+        .alert {
+            padding: 10px;
+            background-color: var(--success-color);
+            color: white;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: 500;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ Huawei Qos Profile Config Generator</h1>
+        
+        <div class="input-row">
+            <div>
+                <label for="bandwidth">Bandwidth (Nilai):</label>
+                <input type="number" id="bandwidth" placeholder="e.g., 10 atau 512" value="" min="0.001">
+            </div>
+            <div>
+                <label for="bwUnit">Unit BW:</label>
+                <select id="bwUnit">
+                    <option value="mbps">Mbps</option>
+                    <option value="kbps">Kbps</option>
+                </select>
+            </div>
+            <div>
+                <label for="serviceCategory">Kategori Layanan:</label>
+                <select id="serviceCategory">
+                    <option value="dedicated">1. Internet Dedicated</option>
+                    <option value="non-dedicated">2. Non Internet Dedicated</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn btn-add" onclick="addRequest()">
+                    <i class="fas fa-plus-circle"></i> Tambah ke Daftar
+                </button>
+            </div>
+        </div>
+
+        <div id="inputList">
+            </div>
+
+        <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+        <div id="outputSection">
+            <h2>Output Konfigurasi Gabungan (Otomatis Diperbarui)</h2>
+            <div id="copyAlert" class="alert">
+                <i class="fas fa-check-circle"></i> Config berhasil disalin ke clipboard!
+            </div>
+            <pre id="configResult">Daftar permintaan masih kosong. Tambahkan permintaan BW di atas.</pre>
+            <button class="btn btn-copy" onclick="copyConfig()">
+                <i class="fas fa-copy"></i> Salin Config
+            </button>
+        </div>
+        
+    </div>
+
+    <script>
+        // Array untuk menyimpan semua permintaan konfigurasi
+        let requests = [];
+
+        function convertToMbps(bwValue, unit) {
+            if (unit === 'kbps') {
+                return bwValue / 1000;
+            }
+            return bwValue; // Sudah Mbps
+        }
+
+        function calculateQoS(bwValue, bwUnit, category) {
+            const bwMbps = convertToMbps(bwValue, bwUnit);
+            
+            let cir, pir, cbs, pbs;
+            let profileName = '';
+            const isLessThan1M = bwMbps < 1; 
+
+            // --- Logika Perhitungan CIR & Penamaan ---
+
+            if (category === 'dedicated') {
+                let multiplier;
+                if (bwMbps < 1000) {
+                    multiplier = 1.10;
+                } else {
+                    multiplier = 1.05;
+                }
+
+                if (isLessThan1M) {
+                    let bwKbps = Math.round(bwMbps * 1000);
+                    cir = Math.round((bwMbps * 1024) * multiplier); 
+                    profileName = `INET-${bwKbps}K`;
+                } else {
+                    let bwName = Math.round(bwMbps);
+                    cir = Math.round((bwMbps * 1024) * multiplier);
+                    profileName = `INET-${bwName}M`;
+                }
+
+            } else if (category === 'non-dedicated') {
+                if (isLessThan1M) {
+                    let bwKbps = Math.round(bwMbps * 1000);
+                    cir = Math.round(bwMbps * 1024);
+                    profileName = `${bwKbps}K`;
+
+                } else {
+                    let bwName = Math.round(bwMbps);
+                    cir = Math.round(bwMbps * 1024);
+                    profileName = `${bwName}M`;
+                }
+            }
+
+            // --- Perhitungan PIR, CBS, PBS ---
+            // Hasil perkalian dibulatkan tanpa koma (Math.round)
+            pir = Math.round(cir * 1.25);
+            cbs = Math.round(cir * 60);
+            pbs = Math.round(cbs * 1.62);
+
+            const configOutput = `qos-profile ${profileName}\ncar cir ${cir} pir ${pir} cbs ${cbs} pbs ${pbs}\n#`;
+            
+            return { config: configOutput };
+        }
+
+        function renderRequestList() {
+            const listEl = document.getElementById('inputList');
+            listEl.innerHTML = '';
+            
+            if (requests.length === 0) {
+                listEl.innerHTML = '<p style="text-align: center; color: #9ca3af; padding: 10px 0;">Belum ada permintaan konfigurasi.</p>';
+            }
+
+            requests.forEach((req, index) => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'config-item';
+                
+                let categoryName = req.category === 'dedicated' ? 'Dedicated' : 'Non-Dedicated';
+
+                itemEl.innerHTML = `
+                    <span>${categoryName} | BW: ${req.bwValue} ${req.bwUnit.toUpperCase()}</span>
+                    <button onclick="removeRequest(${index})"><i class="fas fa-trash-alt"></i> Hapus</button>
+                `;
+                listEl.appendChild(itemEl);
+            });
+        }
+
+        function addRequest() {
+            const bwInput = document.getElementById('bandwidth');
+            const unitInput = document.getElementById('bwUnit');
+            const categoryInput = document.getElementById('serviceCategory');
+            
+            const bwValue = parseFloat(bwInput.value);
+            const bwUnit = unitInput.value;
+            const category = categoryInput.value;
+
+            if (isNaN(bwValue) || bwValue <= 0) {
+                alert("Mohon masukkan Bandwidth (BW) yang valid (> 0).");
+                return;
+            }
+
+            // Hitung config untuk item yang baru ditambahkan
+            const configData = calculateQoS(bwValue, bwUnit, category);
+
+            requests.push({
+                bwValue: bwValue,
+                bwUnit: bwUnit,
+                category: category,
+                config: configData.config
+            });
+            
+            renderRequestList();
+            generateAllConfig(); // Pemicu otomatis
+            
+            // Reset input setelah ditambahkan
+            bwInput.value = '10';
+            unitInput.value = 'mbps';
+            categoryInput.value = 'dedicated';
+        }
+
+        function removeRequest(index) {
+            requests.splice(index, 1);
+            renderRequestList();
+            generateAllConfig(); // Pemicu otomatis
+        }
+
+        function generateAllConfig() {
+            const resultEl = document.getElementById('configResult');
+            
+            if (requests.length === 0) {
+                resultEl.textContent = 'Daftar permintaan masih kosong. Tambahkan permintaan BW di atas.';
+                return;
+            }
+
+            let combinedConfig = '';
+            requests.forEach(req => {
+                combinedConfig += req.config + '\n\n';
+            });
+            
+            resultEl.textContent = combinedConfig.trim();
+        }
+
+        function copyConfig() {
+            const configText = document.getElementById('configResult').textContent;
+            const alertEl = document.getElementById('copyAlert');
+            
+            if (requests.length === 0 || configText === 'Daftar permintaan masih kosong. Tambahkan permintaan BW di atas.') {
+                alert("Tidak ada konfigurasi yang bisa disalin.");
+                return;
+            }
+
+            navigator.clipboard.writeText(configText).then(() => {
+                alertEl.style.display = 'block';
+                setTimeout(() => {
+                    alertEl.style.display = 'none';
+                }, 3000); 
+            }).catch(err => {
+                console.error('Gagal menyalin: ', err);
+                alert("Gagal menyalin config. Pastikan browser Anda mengizinkan akses clipboard.");
+            });
+        }
+
+        // Inisialisasi tampilan saat pertama kali dimuat
+        window.onload = () => {
+            renderRequestList();
+            generateAllConfig();
+        };
+    </script>
+</body>
+</html>
