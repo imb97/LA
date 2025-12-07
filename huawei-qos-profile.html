@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Huawei QoS Profile Config Generator</title>
+    <title>Huawei Qos Profile Config Generator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
@@ -264,12 +264,12 @@
     <div id="notificationContainer"></div>
 
     <div class="container">
-        <h1>Huawei Qos-Profile Config Generator</h1>
+        <h1>✨ Huawei Qos Profile Config Generator</h1>
         
         <div class="input-row">
             <div>
-                <label for="bandwidthList">Bandwidth List (e.g., 32K, 4M, 1G):</label>
-                <input type="text" id="bandwidthList" placeholder="Masukkan nilai BW, jika lebih dari 1 dipisahkan dengan tanda koma">
+                <label for="bandwidthList">Bandwidth List (e.g., 32K, 4.5M, 1G):</label>
+                <input type="text" id="bandwidthList" placeholder="Masukkan beberapa nilai BW dengan dipisahkan tanda koma">
             </div>
             <div>
                 <label for="serviceCategory">Kategori Layanan:</label>
@@ -280,7 +280,7 @@
             </div>
             <div>
                 <button class="btn btn-add" onclick="addRequest()">
-                    <i class="fas fa-plus-circle"></i> Generate Profile
+                    <i class="fas fa-plus-circle"></i> Tambah Semua
                 </button>
             </div>
         </div>
@@ -335,7 +335,7 @@
             }, 5000); 
         }
 
-        // --- Fungsi Parsing Input (Strict Unit) ---
+        // --- Fungsi Parsing Input (Diperbarui agar G tetap G di display list) ---
 
         function parseBWString(bwString) {
             bwString = bwString.trim().toUpperCase();
@@ -351,43 +351,52 @@
             let value = parseFloat(valueMatch[1]);
             let unit = unitMatch[0];
             let bwMbps = value;
-            let displayString = bwString; // Default: e.g. 5M, 512K
+            // bwStringDisplay diinisialisasi dengan bwString, jadi 1G akan tetap 1G
+            let displayString = bwString; 
+            
+            // Simpan unit dan nilai asli untuk penamaan profil
+            const originalUnit = unit;
+            const originalValue = value;
 
             if (unit === 'K') {
                 bwMbps = value / 1000;
             } else if (unit === 'G') {
                 bwMbps = value * 1000;
-                // Konversi G ke M untuk display
-                displayString = `${value * 1000}M`; 
+                // Logika konversi displayString dihilangkan, jadi 1G tetap 1G
+                // displayString = `${value * 1000}M`; <--- Dihapus
             } 
-            // Jika unit 'M', bwMbps = value, displayString = bwString
+            
+            // Note: Untuk K, displayString tetap K
+            // Note: Untuk M, displayString tetap M
 
-            return { valid: true, bwMbps: bwMbps, bwStringDisplay: displayString };
+            return { valid: true, bwMbps: bwMbps, bwStringDisplay: displayString, originalUnit: originalUnit, originalValue: originalValue };
         }
         
-        // --- Fungsi Perhitungan QoS (Akutasi Penamaan) ---
+        // --- Fungsi Perhitungan QoS (Sama seperti versi sebelumnya) ---
 
-        function calculateQoS(bwMbps, category) {
+        function calculateQoS(bwMbps, category, originalUnit, originalValue) {
             
             let cir, pir, cbs, pbs;
             let profileName = '';
             const isLessThan1M = bwMbps < 1; 
 
-            // --- 1. Logika Penentuan NAMA PROFIL (TIDAK DIBULATKAN SIGNIFIKAN) ---
-            if (isLessThan1M) {
-                // Jika < 1M, gunakan K (misal: 420K). Dibulatkan ke integer Kbps.
+            // --- 1. Logika Penentuan NAMA PROFIL ---
+            
+            if (originalUnit === 'G') {
+                // KASUS G: Nama profil menggunakan unit asli (misal: INET-1G)
+                profileName = (category === 'dedicated') ? `INET-${originalValue}G` : `${originalValue}G`;
+
+            } else if (isLessThan1M) {
+                // KASUS K: Jika < 1M, gunakan K (misal: 420K). Dibulatkan ke integer Kbps.
                 let bwKbps = Math.round(bwMbps * 1000); 
                 profileName = (category === 'dedicated') ? `INET-${bwKbps}K` : `${bwKbps}K`;
                 
             } else {
-                // Jika >= 1M, gunakan M. Penamaan akurat (4.2M, bukan 4M).
+                // KASUS M: Jika >= 1M, gunakan M. Penamaan akurat (4.2M, bukan 4M).
                 let bwName;
-                // Cek apakah BW memiliki desimal
                 if (bwMbps % 1 !== 0) {
-                    // Jika ada desimal, tampilkan 1 angka di belakang koma (misal: 4.2)
                     bwName = bwMbps.toFixed(1); 
                 } else {
-                    // Jika bilangan bulat (misal: 10.0), tampilkan tanpa desimal (misal: 10)
                     bwName = Math.round(bwMbps); 
                 }
                 
@@ -399,15 +408,12 @@
             // Perhitungan CIR
             if (category === 'dedicated') {
                 let multiplier = (bwMbps < 1000) ? 1.10 : 1.05;
-                // CIR DIBULATKAN
                 cir = Math.round((bwMbps * 1024) * multiplier); 
-
             } else if (category === 'non-dedicated') {
-                 // CIR DIBULATKAN
                 cir = Math.round(bwMbps * 1024);
             }
             
-            // Perhitungan PIR, CBS, PBS (TETAP DIBULATKAN)
+            // Perhitungan PIR, CBS, PBS
             pir = Math.round(cir * 1.25);
             cbs = Math.round(cir * 60);
             pbs = Math.round(cbs * 1.62);
@@ -461,7 +467,7 @@
                 const parsed = parseBWString(bwStr);
                 
                 if (parsed.valid && parsed.bwMbps > 0) {
-                    const configData = calculateQoS(parsed.bwMbps, category);
+                    const configData = calculateQoS(parsed.bwMbps, category, parsed.originalUnit, parsed.originalValue);
 
                     requests.push({
                         bwStringDisplay: parsed.bwStringDisplay, 
