@@ -116,6 +116,15 @@
             background-color: #4b5563;
         }
 
+        .btn-template {
+            background-color: #2a4f99;
+            margin-top: 15px;
+        }
+
+        .btn-template:hover {
+            background-color: #1f396d;
+        }
+
         .btn:active {
             transform: translateY(1px);
         }
@@ -295,6 +304,9 @@
             <pre id="configResult">Daftar permintaan masih kosong.</pre>
             <button class="btn btn-copy" onclick="copyConfig()">
                 <i class="fas fa-copy"></i> Salin Config
+            </button>
+            <button class="btn btn-template" onclick="window.open('template-huawei-qos-profile-config.txt','_blank')">
+                Template Config
             </button>
         </div>
         
