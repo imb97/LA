@@ -254,14 +254,6 @@ qos-profile 40G
 car cir 40960000 pir 51200000 cbs 2457600000 pbs 3981312000
 #
 
-qos-profile 50G
-car cir 51200000 pir 64000000 cbs 3072000000 pbs 4976640000
-#
-
-qos-profile 100G
-car cir 102400000 pir 128000000 cbs 6144000000 pbs 9953280000
-#
-
 qos-profile INET-32K
 car cir 36 pir 45 cbs 2160 pbs 3499
 #
@@ -516,12 +508,4 @@ car cir 32256000 pir 40320000 cbs 1935360000 pbs 3135283200
 
 qos-profile INET-40G
 car cir 43008000 pir 53760000 cbs 2580480000 pbs 4180377600
-#
-
-qos-profile INET-50G
-car cir 53760000 pir 67200000 cbs 3225600000 pbs 5225472000
-#
-
-qos-profile INET-100G
-car cir 107520000 pir 134400000 cbs 6451200000 pbs 10450944000
 #
