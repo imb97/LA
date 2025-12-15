@@ -117,40 +117,12 @@ ip vpn-instance NEW-ATMMANDIRI
   vpn-target 65535:2000001 export-extcommunity
   vpn-target 65535:2000001 import-extcommunity
 #
-ip vpn-instance NMS-GPON-ISCOM
- ipv4-family
-  route-distinguisher 4800:1557
-  apply-label per-instance
-  vpn-target 4800:1557 export-extcommunity
-  vpn-target 4800:1557 import-extcommunity
-#
-ip vpn-instance NMS-IPI
- ipv4-family
-  route-distinguisher 4800:780
-  apply-label per-instance
-  vpn-target 4800:780 export-extcommunity
-  vpn-target 4800:780 import-extcommunity
-#
-ip vpn-instance NMS-RAISECOM
- ipv4-family
-  route-distinguisher 4800:1596
-  apply-label per-instance
-  vpn-target 4800:1596 export-extcommunity
-  vpn-target 4800:1596 import-extcommunity
-#
 ip vpn-instance NMS-RAX-CPE
  ipv4-family
   route-distinguisher 4800:1601
   apply-label per-instance
   vpn-target 4800:1601 export-extcommunity
   vpn-target 4800:1601 import-extcommunity
-#
-ip vpn-instance NMS-SIMONICA
- ipv4-family
-  route-distinguisher 4800:3103
-  apply-label per-instance
-  vpn-target 4800:3103 export-extcommunity
-  vpn-target 4800:3103 import-extcommunity
 #
 ip vpn-instance SINARMAS-CABANG2
  ipv4-family
@@ -413,4 +385,12 @@ ip vpn-instance ADIRA-FINANCE
   vpn-target 65535:50431801 export-extcommunity
   vpn-target 65535:50431801 import-extcommunity
 #
+ip vpn-instance NMS-NETWORK-ELEMENT
+ipv4-family
+  route-distinguisher 4700:10000
+  apply-label per-instance
+  vpn-target 4700:10000 export-extcommunity
+  vpn-target 4700:10000 import-extcommunity
+#
+
 
