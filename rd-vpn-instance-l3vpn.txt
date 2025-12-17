@@ -392,5 +392,20 @@ ipv4-family
   vpn-target 4700:10000 export-extcommunity
   vpn-target 4700:10000 import-extcommunity
 #
+ip vpn-instance INET-LITE-YGYNEU
+ ipv4-family
+  route-distinguisher 48000:10026
+  apply-label per-instance
+  vpn-target 48000:10026 export-extcommunity
+  vpn-target 48000:10026 import-extcommunity
+#
+ip vpn-instance INET-LITE-SMGHCP
+ ipv4-family
+  route-distinguisher 48000:10027
+  apply-label per-instance
+  vpn-target 48000:10027 export-extcommunity
+  vpn-target 48000:10027 import-extcommunity
+#
+
 
 
