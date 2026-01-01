@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ApproveDoc v19 - Fix Header</title>
+    <title>ApproveDoc v20 - Master Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
@@ -16,101 +16,98 @@
             display: flex; align-items: center; justify-content: center;
         }
         .sig-item img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-        .delete-btn { position: absolute; top: -10px; right: -10px; background: red; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 14px; text-align: center; line-height: 18px; font-weight: bold; border: 1px solid white; }
+        .delete-btn { position: absolute; top: -12px; right: -12px; background: red; color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 14px; text-align: center; line-height: 22px; font-weight: bold; border: 2px solid white; z-index: 60; }
         #signature-pad { touch-action: none; background: #fff; width: 100%; height: 200px; border: 2px solid #3b82f6; border-radius: 12px; }
     </style>
 </head>
 <body class="bg-slate-100">
 
     <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-[100]">
-        <h1 class="font-bold text-blue-600">ApproveDoc v19</h1>
+        <h1 class="font-bold text-blue-600">ApproveDoc v20</h1>
         <div class="flex gap-2">
-            <button onclick="document.getElementById('upload-pdf').click()" class="bg-slate-200 px-4 py-2 rounded-lg text-xs font-bold">1. UPLOAD</button>
+            <button onclick="document.getElementById('upload-pdf').click()" class="bg-slate-200 px-4 py-2 rounded-lg text-xs font-bold uppercase">1. Upload</button>
             <input type="file" id="upload-pdf" accept="application/pdf" class="hidden" onchange="handleFile(event)">
-            <button onclick="exportDoc()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold">2. EXPORT</button>
+            <button onclick="exportDoc()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase">2. Export</button>
         </div>
     </nav>
 
     <main class="p-4 flex flex-col items-center">
-        <button onclick="openSigModal()" class="mb-4 w-full max-w-md py-4 bg-blue-50 border-2 border-blue-400 text-blue-700 rounded-xl font-bold">
-            ✍️ BUAT TANDA TANGAN
+        <button onclick="openSigModal()" class="mb-4 w-full max-w-md py-4 bg-white border-2 border-blue-600 text-blue-600 rounded-xl font-bold shadow-sm">
+            ✍️ GAMBAR TANDA TANGAN
         </button>
         <div id="pdf-container" class="w-full flex flex-col items-center"></div>
     </main>
 
     <div id="sig-modal" style="display:none;" class="fixed inset-0 bg-black/80 z-[200] flex flex-col justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-md mx-auto p-6">
-            <div class="flex justify-between items-center mb-4"><span class="font-bold">Gambar TTD</span><button onclick="closeSigModal()" class="text-2xl">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><span class="font-bold">Area Tanda Tangan</span><button onclick="closeSigModal()" class="text-2xl">&times;</button></div>
             <canvas id="signature-pad"></canvas>
             <div class="flex gap-3 mt-6">
-                <button onclick="resetPad()" class="flex-1 py-3 bg-gray-100 rounded-lg">Hapus</button>
-                <button onclick="confirmPad()" class="flex-1 py-3 bg-blue-600 text-white rounded-lg">Simpan</button>
+                <button onclick="resetPad()" class="flex-1 py-3 bg-gray-100 rounded-lg font-bold text-gray-500">HAPUS</button>
+                <button onclick="confirmPad()" class="flex-1 py-3 bg-blue-600 text-white rounded-lg font-bold">SIMPAN</button>
             </div>
         </div>
     </div>
 
     <script>
-        var masterPdfArray = null; // Ini untuk menyimpan data asli agar tidak kena "No PDF Header"
-        var ttdImg = null;
-        var modal = document.getElementById('sig-modal');
-        var pad = document.getElementById('signature-pad');
-        var ctx = pad.getContext('2d');
+        let rawPdfData = null; 
+        let ttdImg = null;
+        const modal = document.getElementById('sig-modal');
+        const pad = document.getElementById('signature-pad');
+        const ctx = pad.getContext('2d');
 
         function openSigModal() { modal.style.display = 'flex'; setTimeout(() => { pad.width = pad.offsetWidth; pad.height = pad.offsetHeight; ctx.lineWidth = 3; ctx.lineCap = 'round'; }, 100); }
         function closeSigModal() { modal.style.display = 'none'; }
         function resetPad() { ctx.clearRect(0,0,pad.width,pad.height); }
-        function confirmPad() { ttdImg = pad.toDataURL(); closeSigModal(); alert("TTD Siap! Klik di halaman PDF."); }
+        function confirmPad() { ttdImg = pad.toDataURL('image/png'); closeSigModal(); alert("Tanda tangan disimpan! Ketuk pada dokumen."); }
 
-        // DRAW
-        var isDrawing = false;
-        function getXY(e) { var r = pad.getBoundingClientRect(); var t = e.touches ? e.touches[0] : e; return { x: t.clientX - r.left, y: t.clientY - r.top }; }
-        pad.onmousedown = pad.ontouchstart = (e) => { isDrawing = true; ctx.beginPath(); var p = getXY(e); ctx.moveTo(p.x, p.y); };
-        pad.onmousemove = pad.ontouchmove = (e) => { if(!isDrawing) return; var p = getXY(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); };
-        window.onmouseup = window.ontouchend = () => { isDrawing = false; };
+        let isDrawing = false;
+        const getXY = (e) => { const r = pad.getBoundingClientRect(); const t = e.touches ? e.touches[0] : e; return { x: t.clientX - r.left, y: t.clientY - r.top }; };
+        pad.onmousedown = pad.ontouchstart = (e) => { isDrawing = true; ctx.beginPath(); const p = getXY(e); ctx.moveTo(p.x, p.y); };
+        pad.onmousemove = pad.ontouchmove = (e) => { if(!isDrawing) return; const p = getXY(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); };
+        window.onmouseup = window.ontouchend = () => isDrawing = false;
 
-        // FILE
         async function handleFile(e) {
-            var file = e.target.files[0];
+            const file = e.target.files[0];
             if(!file) return;
-            var reader = new FileReader();
+            const reader = new FileReader();
             reader.onload = async function() {
-                masterPdfArray = new Uint8Array(this.result); // Simpan permanen di sini
-                renderPDF(masterPdfArray);
+                rawPdfData = new Uint8Array(this.result); // Mengunci data asli
+                renderPDF(rawPdfData);
             };
             reader.readAsArrayBuffer(file);
         }
 
         async function renderPDF(data) {
-            var pdfjs = window['pdfjs-dist/build/pdf'];
+            const pdfjs = window['pdfjs-dist/build/pdf'];
             pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-            var doc = await pdfjs.getDocument({data: data}).promise;
-            var container = document.getElementById('pdf-container');
+            const doc = await pdfjs.getDocument({data: data}).promise;
+            const container = document.getElementById('pdf-container');
             container.innerHTML = '';
 
-            for(var i=1; i<=doc.numPages; i++) {
-                var page = await doc.getPage(i);
-                var scale = container.offsetWidth / page.getViewport({scale:1}).width;
-                var vp = page.getViewport({scale: scale});
-                var wrap = document.createElement('div');
+            for(let i=1; i<=doc.numPages; i++) {
+                const page = await doc.getPage(i);
+                const scale = container.offsetWidth / page.getViewport({scale:1}).width;
+                const vp = page.getViewport({scale: scale});
+                const wrap = document.createElement('div');
                 wrap.className = 'page-wrapper';
                 wrap.dataset.idx = i-1;
-                var cvs = document.createElement('canvas');
+                const cvs = document.createElement('canvas');
                 cvs.width = vp.width; cvs.height = vp.height;
                 wrap.appendChild(cvs);
                 container.appendChild(wrap);
                 await page.render({canvasContext: cvs.getContext('2d'), viewport: vp}).promise;
-                cvs.onclick = function(ev) { if(ttdImg) addSig(this.parentElement, ev.offsetX, ev.offsetY); };
+                cvs.onclick = (ev) => { if(ttdImg) addSig(wrap, ev.offsetX, ev.offsetY); };
             }
         }
 
         function addSig(parent, x, y) {
-            var sig = document.createElement('div');
+            const sig = document.createElement('div');
             sig.className = 'sig-item';
             sig.style.left = (x - 60) + 'px'; sig.style.top = (y - 30) + 'px';
             sig.innerHTML = `<img src="${ttdImg}"><div class="delete-btn" onclick="event.stopPropagation(); this.parentElement.remove()">×</div>`;
             
-            // Drag Logic Simple
-            let active = false, currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
+            let active = false, currentX = 0, currentY = 0, initialX, initialY, xOffset = 0, yOffset = 0;
             const dragStart = (e) => {
                 initialX = (e.type === "touchstart" ? e.touches[0].clientX : e.clientX) - xOffset;
                 initialY = (e.type === "touchstart" ? e.touches[0].clientY : e.clientY) - yOffset;
@@ -123,6 +120,7 @@
                     currentY = (e.type === "touchmove" ? e.touches[0].clientY : e.clientY) - initialY;
                     xOffset = currentX; yOffset = currentY;
                     sig.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+                    sig.dataset.offX = currentX; sig.dataset.offY = currentY;
                 }
             };
             sig.addEventListener("touchstart", dragStart, {passive:false});
@@ -136,34 +134,46 @@
         }
 
         async function exportDoc() {
-            if(!masterPdfArray) return alert("Upload PDF!");
-            var sigs = document.querySelectorAll('.sig-item');
+            if(!rawPdfData) return alert("File PDF belum diupload!");
+            const sigs = document.querySelectorAll('.sig-item');
+            if(sigs.length === 0) return alert("Tempelkan tanda tangan terlebih dahulu!");
+
             try {
-                const pdfDoc = await PDFLib.PDFDocument.load(masterPdfArray); // Load dari master yang aman
-                for(let el of sigs) {
-                    let parent = el.parentElement;
-                    let page = pdfDoc.getPages()[parseInt(parent.dataset.idx)];
-                    let { width, height } = page.getSize();
-                    let rect = el.getBoundingClientRect();
-                    let pRect = parent.getBoundingClientRect();
+                // Memuat ulang dokumen dari data asli yang dikunci
+                const pdfDoc = await PDFLib.PDFDocument.load(rawPdfData.slice()); 
+                
+                for(const el of sigs) {
+                    const parent = el.parentElement;
+                    const page = pdfDoc.getPages()[parseInt(parent.dataset.idx)];
+                    const { width, height } = page.getSize();
+                    
+                    const pRect = parent.getBoundingClientRect();
+                    const elRect = el.getBoundingClientRect();
 
-                    let visualX = rect.left - pRect.left + (rect.width/2);
-                    let visualY = rect.top - pRect.top + (rect.height/2);
+                    // Hitung posisi relatif visual terhadap canvas
+                    const visualX = elRect.left - pRect.left + (elRect.width/2);
+                    const visualY = elRect.top - pRect.top + (elRect.height/2);
 
-                    const img = await pdfDoc.embedPng(await fetch(ttdImg).then(r => r.arrayBuffer()));
+                    const imgBytes = await fetch(ttdImg).then(r => r.arrayBuffer());
+                    const img = await pdfDoc.embedPng(imgBytes);
+
                     page.drawImage(img, {
                         x: (visualX / pRect.width) * width - 50,
                         y: height - ((visualY / pRect.height) * height) - 25,
                         width: 100, height: 50
                     });
                 }
-                const bytes = await pdfDoc.save();
-                const blob = new Blob([bytes], {type: "application/pdf"});
+
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = "Approved.pdf";
+                link.download = "Hasil_Approval_v20.pdf";
                 link.click();
-            } catch(e) { alert("Export Error: " + e.message); }
+            } catch (err) {
+                console.error(err);
+                alert("Gagal Export: Pastikan file PDF tidak diproteksi.");
+            }
         }
     </script>
 </body>
