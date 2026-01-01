@@ -3,133 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ApproveDoc Pro - Multi Signature</title>
+    <title>ApproveDoc v4 - Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <style>
-        body { background-color: #f1f5f9; }
-        .page-wrapper { position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: white; margin-bottom: 20px; touch-action: none; }
-        canvas { max-width: 100%; height: auto; display: block; }
+        .page-wrapper { position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: white; margin-bottom: 20px; }
+        canvas { max-width: 100%; height: auto; display: block; touch-action: none; }
         .sig-box { 
             position: absolute; border: 2px dashed #2563eb; width: 100px; height: 50px; 
-            transform: translate(-50%, -50%); pointer-events: auto; background: rgba(37, 99, 235, 0.05);
-            cursor: move;
+            transform: translate(-50%, -50%); pointer-events: none; background: rgba(37, 99, 235, 0.1);
         }
-        #signature-pad { touch-action: none; background: #fff; width: 100%; height: 250px; border: 1px solid #e2e8f0; border-radius: 12px; }
+        #signature-pad { touch-action: none; background: #fff; width: 100%; height: 200px; border: 1px solid #ddd; border-radius: 8px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="bg-slate-50 min-h-screen flex flex-col">
 
-    <nav class="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center sticky top-0 z-[100]">
-        <h1 class="font-bold text-xl text-blue-600">Approve<span class="text-gray-800 text-sm">Doc v3</span></h1>
+    <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-[100]">
+        <h1 class="font-bold text-blue-600">ApproveDoc <span class="text-gray-400 text-xs">v4</span></h1>
         <div class="flex gap-2">
-            <label for="upload-pdf" class="cursor-pointer bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-xs font-bold uppercase hover:bg-gray-200">1. Upload PDF</label>
+            <label for="upload-pdf" class="cursor-pointer bg-slate-100 px-3 py-2 rounded-lg text-xs font-bold uppercase">1. Upload</label>
             <input type="file" id="upload-pdf" accept="application/pdf" class="hidden">
-            <button id="export-btn" class="bg-green-600 text-white px-3 py-2 rounded-lg text-xs font-bold uppercase shadow-sm hover:bg-green-700">3. Export PDF</button>
+            <button id="export-btn" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold uppercase disabled:opacity-50">2. Export</button>
         </div>
     </nav>
 
-    <div class="flex flex-col lg:flex-row flex-1 overflow-hidden">
-        <aside class="w-full lg:w-80 bg-white border-b lg:border-r border-gray-200 p-4 lg:p-6 flex flex-col gap-4">
-            <button id="open-draw" class="flex items-center justify-center gap-3 w-full py-4 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-                <span class="font-bold text-sm">2. Buat Tanda Tangan</span>
-            </button>
-            <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
-                <p class="text-[11px] text-yellow-800">
-                    <b>Tips:</b> Anda bisa membubuhkan tanda tangan <b>lebih dari satu kali</b> di halaman manapun. Klik area untuk menaruh TTD.
-                </p>
-            </div>
-        </aside>
+    <main class="flex-1 p-4 lg:p-10 flex flex-col items-center">
+        <button id="open-draw" class="mb-6 w-full max-w-md py-4 bg-white border-2 border-dashed border-blue-400 text-blue-600 rounded-xl font-bold hover:bg-blue-50 transition">
+            Klik Untuk Gambar Tanda Tangan
+        </button>
+        
+        <div id="pdf-container" class="w-full max-w-3xl">
+            <p id="empty-msg" class="text-center text-gray-400 mt-10">Belum ada file diupload</p>
+        </div>
+    </main>
 
-        <main class="flex-1 overflow-y-auto p-4 lg:p-10 flex flex-col items-center">
-            <div id="pdf-container" class="w-full max-w-3xl">
-                <div id="empty-state" class="py-20 text-center text-gray-400">
-                    <p>Silakan upload PDF untuk memulai</p>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <div id="sig-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden flex-col justify-end lg:justify-center p-0 lg:p-4">
-        <div class="bg-white rounded-t-3xl lg:rounded-2xl w-full max-w-xl mx-auto p-6 lg:p-8">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="font-bold text-lg">Gambar TTD</h3>
-                <button id="close-modal" class="p-2 text-gray-400 text-2xl">✕</button>
-            </div>
+    <div id="sig-modal" class="fixed inset-0 bg-black/60 z-[200] hidden flex-col justify-end lg:justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md mx-auto p-6">
+            <h3 class="font-bold mb-4">Gambar TTD Anda</h3>
             <canvas id="signature-pad"></canvas>
             <div class="flex gap-2 mt-4">
-                <button id="clear-pad" class="flex-1 py-3 bg-gray-100 rounded-xl text-sm font-bold">Hapus</button>
-                <button id="save-pad" class="flex-[2] py-3 bg-blue-600 text-white rounded-xl text-sm font-bold">Gunakan</button>
+                <button id="clear-pad" class="flex-1 py-3 bg-gray-100 rounded-lg font-bold text-sm">Hapus</button>
+                <button id="save-pad" class="flex-1 py-3 bg-blue-600 text-white rounded-lg font-bold text-sm">Simpan</button>
             </div>
+            <button id="close-modal" class="w-full mt-2 py-2 text-gray-400 text-xs">Tutup</button>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const pdfjsLib = window['pdfjs-dist/build/pdf'];
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    // Memastikan script jalan setelah halaman siap
+    window.onload = function() {
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-            let pdfDocRaw = null; // Buffer asli untuk export
-            let pdfDocInstance = null;
-            let signatureImage = null;
-            let signaturesList = []; // Menyimpan semua koordinat TTD
+        let pdfDocRaw = null;
+        let signatureImage = null;
+        let signaturesList = [];
 
-            const sigCanvas = document.getElementById('signature-pad');
-            const sigCtx = sigCanvas.getContext('2d');
+        const sigCanvas = document.getElementById('signature-pad');
+        const sigCtx = sigCanvas.getContext('2d');
+        const sigModal = document.getElementById('sig-modal');
 
-            // --- 1. Logika Tanda Tangan ---
-            document.getElementById('open-draw').onclick = () => {
-                document.getElementById('sig-modal').classList.remove('hidden');
-                document.getElementById('sig-modal').classList.add('flex');
-                const rect = sigCanvas.getBoundingClientRect();
-                sigCanvas.width = rect.width; sigCanvas.height = rect.height;
-                sigCtx.lineWidth = 3; sigCtx.lineCap = 'round'; sigCtx.strokeStyle = '#000';
-            };
+        // --- HANDLER MODAL ---
+        document.getElementById('open-draw').onclick = () => {
+            sigModal.classList.remove('hidden');
+            sigModal.classList.add('flex');
+            // Reset canvas size inside modal
+            sigCanvas.width = sigCanvas.offsetWidth;
+            sigCanvas.height = sigCanvas.offsetHeight;
+            sigCtx.lineWidth = 3;
+            sigCtx.lineCap = 'round';
+        };
 
-            let drawing = false;
-            const getPos = (e) => {
-                const r = sigCanvas.getBoundingClientRect();
-                const cx = e.touches ? e.touches[0].clientX : e.clientX;
-                const cy = e.touches ? e.touches[0].clientY : e.clientY;
-                return { x: cx - r.left, y: cy - r.top };
-            };
-            sigCanvas.onmousedown = sigCanvas.ontouchstart = (e) => { drawing = true; sigCtx.beginPath(); const p = getPos(e); sigCtx.moveTo(p.x, p.y); if(e.touches) e.preventDefault(); };
-            sigCanvas.onmousemove = sigCanvas.ontouchmove = (e) => { if(!drawing) return; const p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); if(e.touches) e.preventDefault(); };
-            window.onmouseup = window.ontouchend = () => drawing = false;
+        document.getElementById('close-modal').onclick = () => sigModal.classList.add('hidden');
 
-            document.getElementById('save-pad').onclick = () => {
-                signatureImage = sigCanvas.toDataURL();
-                document.getElementById('sig-modal').classList.add('hidden');
-            };
-            document.getElementById('clear-pad').onclick = () => sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
-            document.getElementById('close-modal').onclick = () => document.getElementById('sig-modal').classList.add('hidden');
+        // --- LOGIKA DRAW ---
+        let drawing = false;
+        const getPos = (e) => {
+            const r = sigCanvas.getBoundingClientRect();
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: cx - r.left, y: cy - r.top };
+        };
 
-            // --- 2. Render PDF ---
-            document.getElementById('upload-pdf').onchange = async (e) => {
-                const file = e.target.files[0];
-                if(!file) return;
+        sigCanvas.onmousedown = sigCanvas.ontouchstart = (e) => {
+            drawing = true;
+            sigCtx.beginPath();
+            const p = getPos(e);
+            sigCtx.moveTo(p.x, p.y);
+            if(e.touches) e.preventDefault();
+        };
+
+        sigCanvas.onmousemove = sigCanvas.ontouchmove = (e) => {
+            if(!drawing) return;
+            const p = getPos(e);
+            sigCtx.lineTo(p.x, p.y);
+            sigCtx.stroke();
+            if(e.touches) e.preventDefault();
+        };
+
+        window.onmouseup = window.ontouchend = () => { drawing = false; };
+
+        document.getElementById('clear-pad').onclick = () => sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
+
+        document.getElementById('save-pad').onclick = () => {
+            signatureImage = sigCanvas.toDataURL();
+            sigModal.classList.add('hidden');
+            alert("TTD Tersimpan! Klik pada halaman PDF untuk menaruhnya.");
+        };
+
+        // --- LOGIKA PDF ---
+        document.getElementById('upload-pdf').onchange = async (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            try {
                 pdfDocRaw = await file.arrayBuffer();
-                pdfDocInstance = await pdfjsLib.getDocument(pdfDocRaw.slice(0)).promise;
+                const loadingTask = pdfjsLib.getDocument({data: pdfDocRaw});
+                const pdfInstance = await loadingTask.promise;
                 
                 const container = document.getElementById('pdf-container');
                 container.innerHTML = '';
-                document.getElementById('empty-state').classList.add('hidden');
+                document.getElementById('empty-msg').classList.add('hidden');
 
-                for (let i = 1; i <= pdfDocInstance.numPages; i++) {
-                    const page = await pdfDocInstance.getPage(i);
+                for (let i = 1; i <= pdfInstance.numPages; i++) {
+                    const page = await pdfInstance.getPage(i);
                     const scale = container.offsetWidth / page.getViewport({scale:1}).width;
                     const viewport = page.getViewport({ scale });
                     
                     const wrapper = document.createElement('div');
                     wrapper.className = 'page-wrapper';
                     const canvas = document.createElement('canvas');
-                    canvas.width = viewport.width; canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
                     wrapper.appendChild(canvas);
                     container.appendChild(wrapper);
+                    
                     await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
 
                     canvas.onclick = (ev) => {
@@ -138,37 +147,43 @@
                         const x = ev.clientX - r.left;
                         const y = ev.clientY - r.top;
 
-                        // Tambah visual ke web
                         const box = document.createElement('div');
                         box.className = 'sig-box';
-                        box.style.left = x + 'px'; box.style.top = y + 'px';
+                        box.style.left = x + 'px';
+                        box.style.top = y + 'px';
                         box.innerHTML = `<img src="${signatureImage}" class="w-full h-full">`;
                         wrapper.appendChild(box);
 
-                        // Simpan data untuk export
                         signaturesList.push({
                             pageIndex: i - 1,
-                            x: x / scale, // Kembalikan ke skala asli PDF
-                            y: (canvas.height - y) / scale, // PDF Y mulai dari bawah
+                            x: x / scale,
+                            y: (canvas.height - y) / scale,
                             image: signatureImage,
                             width: 100 / scale,
                             height: 50 / scale
                         });
                     };
                 }
-            };
+            } catch (err) {
+                console.error(err);
+                alert("Gagal memuat PDF: " + err.message);
+            }
+        };
 
-            // --- 3. LOGIKA EXPORT (PDF-LIB) ---
-            document.getElementById('export-btn').onclick = async () => {
-                if(!pdfDocRaw || signaturesList.length === 0) return alert("Upload PDF dan tempelkan TTD dulu!");
+        // --- LOGIKA EXPORT ---
+        document.getElementById('export-btn').onclick = async () => {
+            if(!pdfDocRaw || signaturesList.length === 0) {
+                return alert("Pilih file PDF dan bubuhkan minimal satu TTD!");
+            }
 
+            try {
                 const { PDFDocument } = PDFLib;
                 const pdfDoc = await PDFDocument.load(pdfDocRaw);
                 
                 for (const sig of signaturesList) {
-                    const image = await pdfDoc.embedPng(sig.image);
+                    const img = await pdfDoc.embedPng(sig.image);
                     const page = pdfDoc.getPages()[sig.pageIndex];
-                    page.drawImage(image, {
+                    page.drawImage(img, {
                         x: sig.x - (sig.width / 2),
                         y: sig.y - (sig.height / 2),
                         width: sig.width,
@@ -180,10 +195,14 @@
                 const blob = new Blob([pdfBytes], { type: "application/pdf" });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = "dokumen_signed.pdf";
+                link.download = "hasil_approval.pdf";
                 link.click();
-            };
-        });
+            } catch (err) {
+                console.error(err);
+                alert("Export Gagal: " + err.message);
+            }
+        };
+    };
     </script>
 </body>
 </html>
