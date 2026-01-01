@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ApproveDoc v11 - Edit & Delete</title>
+    <title>ApproveDoc v12 - Fixed Export</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
@@ -13,20 +13,19 @@
         .sig-box { 
             position: absolute; border: 2px dashed #2563eb; width: 100px; height: 50px; 
             transform: translate(-50%, -50%); cursor: pointer; background: rgba(37, 99, 235, 0.1);
-            transition: all 0.2s; z-index: 10;
+            z-index: 10;
         }
-        .sig-box:hover { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
         #signature-pad { touch-action: none; background: #fff; width: 100%; height: 250px; border: 2px solid #3b82f6; border-radius: 12px; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
 
     <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-[100]">
-        <h1 class="font-bold text-blue-600">ApproveDoc <span class="text-gray-400 text-xs">v11</span></h1>
+        <h1 class="font-bold text-blue-600">ApproveDoc v12</h1>
         <div class="flex gap-2">
             <button onclick="document.getElementById('upload-pdf').click()" class="bg-slate-200 px-4 py-2 rounded-lg text-xs font-bold">1. UPLOAD</button>
             <input type="file" id="upload-pdf" accept="application/pdf" class="hidden" onchange="handleFile(event)">
-            <button onclick="exportDoc()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold">2. EXPORT</button>
+            <button onclick="exportDoc()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-lg">2. EXPORT</button>
         </div>
     </nav>
 
@@ -34,19 +33,15 @@
         <button onclick="openSigModal()" class="mb-4 w-full max-w-md py-5 bg-blue-50 border-2 border-blue-400 text-blue-700 rounded-2xl font-bold">
             ✍️ BUAT TANDA TANGAN
         </button>
-        <p class="text-[10px] text-gray-400 mb-4 italic text-center">Tips: Jika salah tempel, klik pada tanda tangan di dokumen untuk menghapusnya.</p>
         <div id="pdf-container" class="w-full flex flex-col items-center"></div>
     </main>
 
     <div id="sig-modal" style="display:none;" class="fixed inset-0 bg-black/80 z-[200] flex-col justify-end lg:justify-center p-4">
         <div class="bg-white rounded-3xl w-full max-w-md mx-auto p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-4">
-                <span class="font-bold text-blue-600 uppercase text-xs">Gambarkan TTD</span>
-                <button onclick="closeSigModal()" class="text-3xl text-gray-400">&times;</button>
-            </div>
+            <div class="flex justify-between items-center mb-4"><span class="font-bold text-blue-600 text-xs">GAMBAR TTD</span><button onclick="closeSigModal()" class="text-3xl text-gray-400">&times;</button></div>
             <canvas id="signature-pad"></canvas>
             <div class="flex gap-3 mt-6">
-                <button onclick="resetPad()" class="flex-1 py-4 bg-gray-100 rounded-xl font-bold">HAPUS</button>
+                <button onclick="resetPad()" class="flex-1 py-4 bg-gray-100 rounded-xl font-bold text-gray-500">HAPUS</button>
                 <button onclick="confirmPad()" class="flex-1 py-4 bg-blue-600 text-white rounded-xl font-bold">SIMPAN</button>
             </div>
         </div>
@@ -55,7 +50,7 @@
     <script>
         var pdfBytes = null;
         var ttdImgData = null;
-        var signatures = []; // Array untuk menyimpan data TTD
+        var signatures = [];
         var isDrawing = false;
         var modal = document.getElementById('sig-modal');
         var pad = document.getElementById('signature-pad');
@@ -63,14 +58,11 @@
 
         function openSigModal() {
             modal.style.display = 'flex';
-            setTimeout(() => {
-                pad.width = pad.offsetWidth; pad.height = pad.offsetHeight;
-                ctx.lineWidth = 4; ctx.lineCap = 'round';
-            }, 100);
+            setTimeout(() => { pad.width = pad.offsetWidth; pad.height = pad.offsetHeight; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = '#000'; }, 100);
         }
         function closeSigModal() { modal.style.display = 'none'; }
         function resetPad() { ctx.clearRect(0,0,pad.width,pad.height); }
-        function confirmPad() { ttdImgData = pad.toDataURL(); closeSigModal(); }
+        function confirmPad() { ttdImgData = pad.toDataURL('image/png'); closeSigModal(); }
 
         function getXY(e) {
             var r = pad.getBoundingClientRect();
@@ -92,11 +84,10 @@
                 
                 var doc = await pdfjs.getDocument({data: pdfBytes.slice(0)}).promise;
                 var container = document.getElementById('pdf-container');
-                container.innerHTML = '';
-                signatures = []; // Reset list TTD saat upload file baru
+                container.innerHTML = ''; signatures = [];
 
                 for(var i=1; i<=doc.numPages; i++) {
-                    let pageIdx = i - 1;
+                    let pIdx = i - 1;
                     var page = await doc.getPage(i);
                     var scale = container.offsetWidth / page.getViewport({scale:1}).width;
                     var vp = page.getViewport({scale: scale});
@@ -114,33 +105,24 @@
                         var r = cvs.getBoundingClientRect();
                         var x = ev.clientX - r.left;
                         var y = ev.clientY - r.top;
-
-                        // ID unik untuk setiap TTD agar bisa dihapus
-                        var sigId = Date.now();
+                        var sId = Date.now();
 
                         var box = document.createElement('div');
                         box.className = 'sig-box';
-                        box.id = 'sig-' + sigId;
+                        box.id = 's-'+sId;
                         box.style.left = x+'px'; box.style.top = y+'px';
                         box.innerHTML = '<img src="'+ttdImgData+'" class="w-full h-full pointer-events-none">';
                         
-                        // FITUR HAPUS: Jika kotak diklik, hapus elemen dan data
-                        box.onclick = function(stopEvent) {
-                            stopEvent.stopPropagation(); // Mencegah trigger klik di canvas bawahnya
-                            box.remove(); // Hapus dari layar
-                            signatures = signatures.filter(s => s.id !== sigId); // Hapus dari memori export
+                        box.onclick = function(se) {
+                            se.stopPropagation(); box.remove();
+                            signatures = signatures.filter(s => s.id !== sId);
                         };
 
                         wrap.appendChild(box);
-
                         signatures.push({
-                            id: sigId,
-                            pageIdx: pageIdx,
-                            x: x / scale,
-                            y: (cvs.height - y) / scale,
-                            img: ttdImgData,
-                            w: 100 / scale,
-                            h: 50 / scale
+                            id: sId, pageIdx: pIdx, 
+                            x: x / scale, y: (cvs.height - y) / scale,
+                            img: ttdImgData, w: 100 / scale, h: 50 / scale
                         });
                     };
                 }
@@ -149,31 +131,32 @@
         }
 
         async function exportDoc() {
-            if(!pdfBytes || signatures.length === 0) return alert("Lengkapi PDF & TTD!");
+            if(!pdfBytes || signatures.length === 0) return alert("Upload PDF & Tempel TTD!");
             try {
-                var pdflib = window.PDFLib;
-                var doc = await pdflib.PDFDocument.load(pdfBytes.slice(0));
+                const { PDFDocument } = PDFLib;
+                const pdfDoc = await PDFDocument.load(pdfBytes.slice(0));
                 
-                for(var i=0; i < signatures.length; i++) {
-                    var s = signatures[i];
-                    var img = await doc.embedPng(s.img);
-                    var pg = doc.getPages()[s.pageIdx];
+                for(const s of signatures) {
+                    // Perbaikan Fatal: Re-embed gambar TTD
+                    const imageBytes = await fetch(s.img).then((res) => res.arrayBuffer());
+                    const embeddedImg = await pdfDoc.embedPng(imageBytes);
                     
-                    pg.drawImage(img, {
+                    const page = pdfDoc.getPages()[s.pageIdx];
+                    page.drawImage(embeddedImg, {
                         x: s.x - (s.w / 2),
                         y: s.y - (s.h / 2),
                         width: s.w,
-                        height: s.h
+                        height: s.h,
                     });
                 }
                 
-                var finalBytes = await doc.save();
-                var blob = new Blob([finalBytes], {type: "application/pdf"});
-                var link = document.createElement('a');
+                const savedBytes = await pdfDoc.save();
+                const blob = new Blob([savedBytes], {type: "application/pdf"});
+                const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = "Hasil_Approval.pdf";
+                link.download = "Final_Signed_Document.pdf";
                 link.click();
-            } catch(e) { alert("Gagal: " + e.message); }
+            } catch(e) { alert("Export Error: " + e.message); }
         }
     </script>
 </body>
