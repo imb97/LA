@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ApproveDoc v7 - Ultra Stable</title>
+    <title>ApproveDoc v8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -14,49 +14,48 @@
             position: absolute; border: 2px dashed #2563eb; width: 100px; height: 50px; 
             transform: translate(-50%, -50%); pointer-events: none; background: rgba(37, 99, 235, 0.1);
         }
-        #signature-pad { touch-action: none; background: #fff; width: 100%; height: 250px; border: 1px solid #ddd; border-radius: 12px; }
-        .loading-btn { opacity: 0.5; pointer-events: none; }
+        #signature-pad { touch-action: none; background: #fff; width: 100%; height: 250px; border: 1px solid #ddd; border-radius: 12px; cursor: crosshair; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex flex-col">
+<body class="bg-slate-50 min-h-screen">
 
     <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-[100]">
         <h1 class="font-bold text-blue-600">ApproveDoc</h1>
         <div class="flex gap-2">
-            <label id="lbl-upload" for="upload-pdf" class="loading-btn cursor-pointer bg-slate-100 px-3 py-2 rounded-lg text-xs font-bold uppercase transition">1. Tunggu...</label>
-            <input type="file" id="upload-pdf" accept="application/pdf" class="hidden">
-            <button id="export-btn" class="loading-btn bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold uppercase shadow-md">2. Export</button>
+            <button onclick="document.getElementById('upload-pdf').click()" class="bg-slate-100 px-3 py-2 rounded-lg text-xs font-bold">1. UPLOAD</button>
+            <input type="file" id="upload-pdf" accept="application/pdf" class="hidden" onchange="handleUpload(this)">
+            <button onclick="handleExport()" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold">2. EXPORT</button>
         </div>
     </nav>
 
-    <main class="flex-1 p-4 flex flex-col items-center">
-        <button id="open-draw" class="loading-btn mb-6 w-full max-w-md py-4 bg-white border-2 border-dashed border-blue-400 text-blue-600 rounded-xl font-bold transition">
-            Menyiapkan Sistem...
+    <main class="p-4 flex flex-col items-center">
+        <button onclick="openModal()" class="mb-6 w-full max-w-md py-4 bg-white border-2 border-dashed border-blue-400 text-blue-600 rounded-xl font-bold">
+            Klik Untuk Gambar Tanda Tangan
         </button>
         
-        <div id="pdf-container" class="w-full flex flex-col items-center">
-            <p id="empty-msg" class="text-center text-gray-400 mt-10 italic">Pastikan koneksi internet aktif untuk memuat library</p>
+        <div id="pdf-container" class="w-full flex flex-col items-center text-gray-400 italic">
+            Silakan upload PDF...
         </div>
     </main>
 
-    <div id="sig-modal" class="fixed inset-0 bg-black/70 z-[200] hidden flex-col justify-end lg:justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl lg:rounded-2xl w-full max-w-md mx-auto p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-gray-800 text-sm uppercase">Tanda Tangan</h3>
-                <button id="close-modal" class="text-gray-400 text-2xl p-2">&times;</button>
+    <div id="sig-modal" class="fixed inset-0 bg-black/70 z-[200] hidden flex-col justify-end lg:justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-md mx-auto p-6">
+            <div class="flex justify-between items-center mb-4 text-sm font-bold uppercase text-gray-500">
+                <span>Gambar Tanda Tangan</span>
+                <button onclick="closeModal()" class="text-2xl">&times;</button>
             </div>
 
-            <div class="flex gap-4 mb-4 items-end">
+            <div class="flex gap-4 mb-4">
                 <div class="flex-1">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Warna</label>
-                    <div class="flex gap-3">
-                        <button class="color-opt w-8 h-8 rounded-full bg-black ring-2 ring-offset-2 ring-black" data-color="#000"></button>
-                        <button class="color-opt w-8 h-8 rounded-full bg-blue-800" data-color="#1e3a8a"></button>
+                    <label class="text-[10px] block mb-1">WARNA</label>
+                    <div class="flex gap-2">
+                        <button onclick="setPen('#000')" class="w-6 h-6 rounded-full bg-black ring-1 ring-offset-1 ring-black"></button>
+                        <button onclick="setPen('#1e3a8a')" class="w-6 h-6 rounded-full bg-blue-900"></button>
                     </div>
                 </div>
                 <div class="flex-1">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Tebal</label>
-                    <select id="pen-weight" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm">
+                    <label class="text-[10px] block mb-1">TEBAL</label>
+                    <select id="pen-weight" class="w-full text-xs border p-1 rounded">
                         <option value="2">Tipis</option>
                         <option value="4" selected>Sedang</option>
                         <option value="6">Tebal</option>
@@ -67,169 +66,128 @@
             <canvas id="signature-pad"></canvas>
             
             <div class="flex gap-3 mt-6">
-                <button id="clear-pad" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm">Hapus</button>
-                <button id="save-pad" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg">Simpan</button>
+                <button onclick="clearPad()" class="flex-1 py-3 bg-gray-100 rounded-xl font-bold">Hapus</button>
+                <button onclick="savePad()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold">Simpan</button>
             </div>
         </div>
     </div>
 
     <script>
-    // FUNGSI UTAMA
-    function startApp() {
-        const pdfjsLib = window['pdfjs-dist/build/pdf'];
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        let pdfBytes = null;
+        let sigImg = null;
+        let sigs = [];
+        let isDrawing = false;
+        let currColor = "#000";
 
-        let pdfDocBytes = null;
-        let signatureImage = null;
-        let signaturesList = [];
-        let drawing = false;
-        let penColor = "#000";
+        const pad = document.getElementById('signature-pad');
+        const ctx = pad.getContext('2d');
 
-        const els = {
-            upload: document.getElementById('upload-pdf'),
-            lblUpload: document.getElementById('lbl-upload'),
-            export: document.getElementById('export-btn'),
-            openDraw: document.getElementById('open-draw'),
-            modal: document.getElementById('sig-modal'),
-            closeModal: document.getElementById('close-modal'),
-            pad: document.getElementById('signature-pad'),
-            savePad: document.getElementById('save-pad'),
-            clearPad: document.getElementById('clear-pad'),
-            container: document.getElementById('pdf-container'),
-            emptyMsg: document.getElementById('empty-msg'),
-            penWeight: document.getElementById('pen-weight')
-        };
-
-        // AKTIFKAN TOMBOL SETELAH SIAP
-        els.lblUpload.innerText = "1. UPLOAD";
-        els.lblUpload.classList.remove('loading-btn');
-        els.export.classList.remove('loading-btn');
-        els.openDraw.innerText = "Klik Untuk Gambar Tanda Tangan";
-        els.openDraw.classList.remove('loading-btn');
-        els.emptyMsg.innerText = "Belum ada file diupload";
-
-        const ctx = els.pad.getContext('2d');
-
-        // HANDLER MODAL & DRAW
-        els.openDraw.onclick = () => {
-            els.modal.classList.remove('hidden');
-            els.modal.classList.add('flex');
-            els.pad.width = els.pad.offsetWidth;
-            els.pad.height = els.pad.offsetHeight;
-        };
-        els.closeModal.onclick = () => els.modal.classList.add('hidden');
-
-        document.querySelectorAll('.color-opt').forEach(opt => {
-            opt.onclick = () => {
-                penColor = opt.dataset.color;
-                document.querySelectorAll('.color-opt').forEach(b => b.classList.remove('ring-2','ring-offset-2','ring-black'));
-                opt.classList.add('ring-2','ring-offset-2','ring-black');
-            }
-        });
-
-        const getPos = (e) => {
-            const r = els.pad.getBoundingClientRect();
-            const cx = e.touches ? e.touches[0].clientX : e.clientX;
-            const cy = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: cx - r.left, y: cy - r.top };
-        };
-
-        els.pad.onmousedown = els.pad.ontouchstart = (e) => {
-            drawing = true; ctx.beginPath();
-            const p = getPos(e); ctx.moveTo(p.x, p.y);
-            if(e.touches) e.preventDefault(); // Mencegah scroll hanya di area gambar
-        };
-
-        els.pad.onmousemove = els.pad.ontouchmove = (e) => {
-            if(!drawing) return;
-            const p = getPos(e);
-            ctx.lineWidth = els.penWeight.value;
-            ctx.strokeStyle = penColor;
+        // Modal Logic
+        function openModal() {
+            document.getElementById('sig-modal').style.display = 'flex';
+            pad.width = pad.offsetWidth;
+            pad.height = pad.offsetHeight;
             ctx.lineCap = 'round';
-            ctx.lineTo(p.x, p.y);
-            ctx.stroke();
+        }
+        function closeModal() { document.getElementById('sig-modal').style.display = 'none'; }
+        function setPen(c) { currColor = c; }
+        function clearPad() { ctx.clearRect(0,0,pad.width,pad.height); }
+        function savePad() { 
+            sigImg = pad.toDataURL(); 
+            closeModal();
+            alert("Tersimpan! Klik pada dokumen.");
+        }
+
+        // Drawing Logic
+        const getXY = (e) => {
+            const r = pad.getBoundingClientRect();
+            const t = e.touches ? e.touches[0] : e;
+            return { x: t.clientX - r.left, y: t.clientY - r.top };
+        };
+        pad.onmousedown = pad.ontouchstart = (e) => {
+            isDrawing = true;
+            ctx.beginPath();
+            const p = getXY(e); ctx.moveTo(p.x, p.y);
             if(e.touches) e.preventDefault();
         };
-
-        window.onmouseup = window.ontouchend = () => drawing = false;
-        els.clearPad.onclick = () => ctx.clearRect(0,0,els.pad.width,els.pad.height);
-        els.savePad.onclick = () => {
-            signatureImage = els.pad.toDataURL();
-            els.modal.classList.add('hidden');
+        pad.onmousemove = pad.ontouchmove = (e) => {
+            if(!isDrawing) return;
+            const p = getXY(e);
+            ctx.strokeStyle = currColor;
+            ctx.lineWidth = document.getElementById('pen-weight').value;
+            ctx.lineTo(p.x, p.y); ctx.stroke();
+            if(e.touches) e.preventDefault();
         };
+        window.onmouseup = window.ontouchend = () => isDrawing = false;
 
-        // PDF LOGIC
-        els.upload.onchange = async (e) => {
-            const file = e.target.files[0];
-            if(!file) return;
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                pdfDocBytes = new Uint8Array(arrayBuffer);
-                const pdfInstance = await pdfjsLib.getDocument({data: pdfDocBytes.slice(0)}).promise;
-                els.container.innerHTML = '';
-                els.emptyMsg.classList.add('hidden');
+        // PDF Logic
+        async function handleUpload(input) {
+            if(!input.files[0]) return;
+            const file = input.files[0];
+            const raw = await file.arrayBuffer();
+            pdfBytes = new Uint8Array(raw);
 
-                for (let i = 1; i <= pdfInstance.numPages; i++) {
-                    const page = await pdfInstance.getPage(i);
-                    const scale = els.container.offsetWidth / page.getViewport({scale:1}).width;
-                    const viewport = page.getViewport({ scale });
-                    
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'page-wrapper';
-                    const canvas = document.createElement('canvas');
-                    canvas.width = viewport.width; canvas.height = viewport.height;
-                    wrapper.appendChild(canvas);
-                    els.container.appendChild(wrapper);
-                    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+            const pdfjs = window['pdfjs-dist/build/pdf'];
+            pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+            
+            const doc = await pdfjs.getDocument({data: pdfBytes.slice(0)}).promise;
+            const container = document.getElementById('pdf-container');
+            container.innerHTML = '';
 
-                    canvas.onclick = (ev) => {
-                        if(!signatureImage) return alert("Gambar TTD dulu!");
-                        const r = canvas.getBoundingClientRect();
-                        const x = ev.clientX - r.left;
-                        const y = ev.clientY - r.top;
-                        const box = document.createElement('div');
-                        box.className = 'sig-box';
-                        box.style.left = x + 'px'; box.style.top = y + 'px';
-                        box.innerHTML = `<img src="${signatureImage}" class="w-full h-full object-contain">`;
-                        wrapper.appendChild(box);
-                        signaturesList.push({
-                            pageIndex: i-1, x: x/scale, y: (canvas.height-y)/scale,
-                            image: signatureImage, width: 100/scale, height: 50/scale
-                        });
-                    };
-                }
-            } catch (err) { alert("Error PDF: " + err.message); }
-        };
+            for(let i=1; i<=doc.numPages; i++) {
+                const page = await doc.getPage(i);
+                const scale = container.offsetWidth / page.getViewport({scale:1}).width;
+                const vp = page.getViewport({scale});
+                
+                const wrap = document.createElement('div');
+                wrap.className = 'page-wrapper';
+                const cvs = document.createElement('canvas');
+                cvs.width = vp.width; cvs.height = vp.height;
+                wrap.appendChild(cvs);
+                container.appendChild(wrap);
+                await page.render({canvasContext: cvs.getContext('2d'), viewport: vp}).promise;
 
-        // EXPORT LOGIC
-        els.export.onclick = async () => {
-            if(!pdfDocBytes || signaturesList.length === 0) return alert("Siapkan PDF & TTD!");
+                cvs.onclick = (e) => {
+                    if(!sigImg) return alert("Gambar TTD dulu!");
+                    const r = cvs.getBoundingClientRect();
+                    const x = e.clientX - r.left;
+                    const y = e.clientY - r.top;
+
+                    const box = document.createElement('div');
+                    box.className = 'sig-box';
+                    box.style.left = x+'px'; box.style.top = y+'px';
+                    box.innerHTML = `<img src="${sigImg}" class="w-full h-full object-contain">`;
+                    wrap.appendChild(box);
+
+                    sigs.push({
+                        idx: i-1, x: x/scale, y: (cvs.height-y)/scale,
+                        img: sigImg, w: 100/scale, h: 50/scale
+                    });
+                };
+            }
+        }
+
+        // Export Logic
+        async function handleExport() {
+            if(!pdfBytes || sigs.length === 0) return alert("Lengkapi PDF & TTD!");
             try {
                 const { PDFDocument } = PDFLib;
-                const pdfDoc = await PDFDocument.load(pdfDocBytes.slice(0));
-                for (const sig of signaturesList) {
-                    const img = await pdfDoc.embedPng(sig.image);
-                    const page = pdfDoc.getPages()[sig.pageIndex];
-                    page.drawImage(img, {
-                        x: sig.x - (sig.width/2), y: sig.y - (sig.height/2),
-                        width: sig.width, height: sig.height
+                const doc = await PDFDocument.load(pdfBytes.slice(0));
+                for(const s of sigs) {
+                    const img = await doc.embedPng(s.img);
+                    const pg = doc.getPages()[s.idx];
+                    pg.drawImage(img, {
+                        x: s.x - (s.w/2), y: s.y - (s.h/2),
+                        width: s.w, height: s.h
                     });
                 }
-                const pdfB = await pdfDoc.save();
-                const b = new Blob([pdfB], {type: "application/pdf"});
-                const l = document.createElement('a');
-                l.href = URL.createObjectURL(b); l.download = "Signed.pdf"; l.click();
-            } catch (err) { alert("Gagal Export: " + err.message); }
-        };
-    }
-
-    // CEK KETERSEDIAAN LIBRARY
-    const checkLibs = setInterval(() => {
-        if (window.PDFLib && window['pdfjs-dist/build/pdf']) {
-            clearInterval(checkLibs);
-            startApp();
+                const b = await doc.save();
+                const blob = new Blob([b], {type: "application/pdf"});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = "Signed.pdf"; link.click();
+            } catch(e) { alert("Gagal: "+e.message); }
         }
-    }, 500);
     </script>
 </body>
 </html>
