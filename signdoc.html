@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ApproveDoc v13 - Final Engine</title>
+    <title>ApproveDoc v14 - Precision Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
@@ -21,7 +21,7 @@
 <body class="bg-slate-100 min-h-screen">
 
     <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-[100]">
-        <h1 class="font-bold text-blue-600">ApproveDoc v13</h1>
+        <h1 class="font-bold text-blue-600">ApproveDoc v14</h1>
         <div class="flex gap-2">
             <button onclick="document.getElementById('upload-pdf').click()" class="bg-slate-200 px-4 py-2 rounded-lg text-xs font-bold uppercase">1. Upload</button>
             <input type="file" id="upload-pdf" accept="application/pdf" class="hidden" onchange="handleFile(event)">
@@ -30,7 +30,7 @@
     </nav>
 
     <main class="p-4 flex flex-col items-center">
-        <button onclick="openSigModal()" class="mb-4 w-full max-w-md py-5 bg-blue-50 border-2 border-blue-400 text-blue-700 rounded-2xl font-bold shadow-sm">
+        <button onclick="openSigModal()" class="mb-4 w-full max-w-md py-5 bg-blue-50 border-2 border-blue-400 text-blue-700 rounded-2xl font-bold">
             ✍️ BUAT TANDA TANGAN
         </button>
         <div id="pdf-container" class="w-full flex flex-col items-center"></div>
@@ -38,10 +38,7 @@
 
     <div id="sig-modal" style="display:none;" class="fixed inset-0 bg-black/80 z-[200] flex-col justify-end lg:justify-center p-4">
         <div class="bg-white rounded-3xl w-full max-w-md mx-auto p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-4">
-                <span class="font-bold text-blue-600 text-xs">Gambarkan TTD</span>
-                <button onclick="closeSigModal()" class="text-3xl text-gray-400">&times;</button>
-            </div>
+            <div class="flex justify-between items-center mb-4"><span class="font-bold text-blue-600 text-xs">Gambarkan TTD</span><button onclick="closeSigModal()" class="text-3xl text-gray-400">&times;</button></div>
             <canvas id="signature-pad"></canvas>
             <div class="flex gap-3 mt-6">
                 <button onclick="resetPad()" class="flex-1 py-4 bg-gray-100 rounded-xl font-bold text-gray-500 uppercase text-xs">Hapus</button>
@@ -54,8 +51,6 @@
         var pdfBytes = null;
         var ttdImgData = null;
         var signatures = [];
-        var isDrawing = false;
-        
         var modal = document.getElementById('sig-modal');
         var pad = document.getElementById('signature-pad');
         var ctx = pad.getContext('2d');
@@ -63,36 +58,23 @@
         function openSigModal() {
             modal.style.display = 'flex';
             setTimeout(() => { 
-                pad.width = pad.offsetWidth; 
-                pad.height = pad.offsetHeight; 
+                pad.width = pad.offsetWidth; pad.height = pad.offsetHeight; 
                 ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
             }, 100);
         }
         function closeSigModal() { modal.style.display = 'none'; }
         function resetPad() { ctx.clearRect(0,0,pad.width,pad.height); }
-        function confirmPad() { 
-            // Ambil data PNG murni
-            ttdImgData = pad.toDataURL('image/png'); 
-            closeSigModal(); 
-            alert("Tanda tangan tersimpan! Ketuk pada dokumen PDF untuk menempelkannya.");
-        }
+        function confirmPad() { ttdImgData = pad.toDataURL('image/png'); closeSigModal(); }
 
-        // DRAW LOGIC
+        // DRAWING
+        var isDrawing = false;
         function getXY(e) {
             var r = pad.getBoundingClientRect();
             var t = e.touches ? e.touches[0] : e;
             return { x: t.clientX - r.left, y: t.clientY - r.top };
         }
-        pad.onmousedown = pad.ontouchstart = (e) => { 
-            isDrawing = true; ctx.beginPath(); 
-            var p = getXY(e); ctx.moveTo(p.x, p.y); 
-            if(e.touches) e.preventDefault(); 
-        };
-        pad.onmousemove = pad.ontouchmove = (e) => { 
-            if(!isDrawing) return; 
-            var p = getXY(e); ctx.lineTo(p.x, p.y); ctx.stroke(); 
-            if(e.touches) e.preventDefault(); 
-        };
+        pad.onmousedown = pad.ontouchstart = (e) => { isDrawing = true; ctx.beginPath(); var p = getXY(e); ctx.moveTo(p.x, p.y); if(e.touches) e.preventDefault(); };
+        pad.onmousemove = pad.ontouchmove = (e) => { if(!isDrawing) return; var p = getXY(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); };
         window.onmouseup = window.ontouchend = () => { isDrawing = false; };
 
         // FILE HANDLING
@@ -110,7 +92,6 @@
         async function renderPDF() {
             var pdfjs = window['pdfjs-dist/build/pdf'];
             pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-            
             var doc = await pdfjs.getDocument({data: pdfBytes.slice(0)}).promise;
             var container = document.getElementById('pdf-container');
             container.innerHTML = ''; signatures = [];
@@ -130,7 +111,7 @@
                 await page.render({canvasContext: cvs.getContext('2d'), viewport: vp}).promise;
 
                 cvs.onclick = function(ev) {
-                    if(!ttdImgData) return alert("Gambar Tanda Tangan Dahulu!");
+                    if(!ttdImgData) return alert("Buat TTD Dulu!");
                     var r = cvs.getBoundingClientRect();
                     var x = ev.clientX - r.left;
                     var y = ev.clientY - r.top;
@@ -149,40 +130,39 @@
 
                     wrap.appendChild(box);
                     signatures.push({
-                        id: sId, pageIdx: pIdx, 
-                        x: Math.round(x / scale), 
-                        y: Math.round((cvs.height - y) / scale),
-                        img: ttdImgData, 
-                        w: Math.round(100 / scale), 
-                        h: Math.round(50 / scale)
+                        id: sId, pageIdx: pIdx,
+                        // Simpan rasio (0.0 - 1.0) dari lebar/tinggi canvas untuk presisi total
+                        relX: x / cvs.width,
+                        relY: y / cvs.height,
+                        img: ttdImgData
                     });
                 };
             }
         }
 
-        // EXPORT CORE
+        // EXPORT PRECISION ENGINE
         async function exportDoc() {
             if(!pdfBytes || signatures.length === 0) return alert("Upload PDF & Tempel TTD!");
             try {
                 const { PDFDocument } = PDFLib;
                 const pdfDoc = await PDFDocument.load(pdfBytes.slice(0));
                 
-                for(var i=0; i < signatures.length; i++) {
-                    var s = signatures[i];
-                    
-                    // Convert DataURL ke Binary murni agar terbaca sempurna
-                    const imgRes = await fetch(s.img);
-                    const imgBuffer = await imgRes.arrayBuffer();
+                for(const s of signatures) {
+                    const imgBuffer = await fetch(s.img).then(res => res.arrayBuffer());
                     const embeddedImg = await pdfDoc.embedPng(imgBuffer);
                     
-                    const pages = pdfDoc.getPages();
-                    const targetPage = pages[s.pageIdx];
-                    
-                    targetPage.drawImage(embeddedImg, {
-                        x: s.x - (s.w / 2),
-                        y: s.y - (s.h / 2),
-                        width: s.w,
-                        height: s.h,
+                    const page = pdfDoc.getPages()[s.pageIdx];
+                    const { width, height } = page.getSize(); // Ukuran asli PDF (Points)
+
+                    // Konversi koordinat relatif ke ukuran asli halaman PDF
+                    const finalWidth = 100 * (width / page.getWidth()); // Skala lebar TTD relatif ke PDF
+                    const finalHeight = 50 * (height / page.getHeight());
+
+                    page.drawImage(embeddedImg, {
+                        x: (s.relX * width) - (50 * (width / page.getWidth())), 
+                        y: height - (s.relY * height) - (25 * (height / page.getHeight())),
+                        width: 100, // Ukuran standar di PDF
+                        height: 50
                     });
                 }
                 
@@ -190,14 +170,9 @@
                 const blob = new Blob([finalPdf], {type: "application/pdf"});
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = "Signed_Final.pdf";
-                document.body.appendChild(link);
+                link.download = "Approved_Fixed.pdf";
                 link.click();
-                document.body.removeChild(link);
-            } catch(e) { 
-                console.error(e);
-                alert("Kesalahan saat export: " + e.message); 
-            }
+            } catch(e) { alert("Error: " + e.message); }
         }
     </script>
 </body>
