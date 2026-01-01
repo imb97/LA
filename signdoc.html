@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ApproveDoc v15 - Perfect Precision</title>
+    <title>ApproveDoc v16 - Ultra Compatible</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
@@ -13,7 +13,7 @@
         .sig-box { 
             position: absolute; border: 2px dashed #2563eb; width: 100px; height: 50px; 
             transform: translate(-50%, -50%); cursor: pointer; background: rgba(37, 99, 235, 0.1);
-            z-index: 10;
+            z-index: 999;
         }
         #signature-pad { touch-action: none; background: #fff; width: 100%; height: 250px; border: 2px solid #3b82f6; border-radius: 12px; }
     </style>
@@ -21,7 +21,7 @@
 <body class="bg-slate-100 min-h-screen">
 
     <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-[100]">
-        <h1 class="font-bold text-blue-600">ApproveDoc v15</h1>
+        <h1 class="font-bold text-blue-600">ApproveDoc v16</h1>
         <div class="flex gap-2">
             <button onclick="document.getElementById('upload-pdf').click()" class="bg-slate-200 px-4 py-2 rounded-lg text-xs font-bold uppercase">1. Upload</button>
             <input type="file" id="upload-pdf" accept="application/pdf" class="hidden" onchange="handleFile(event)">
@@ -38,7 +38,7 @@
 
     <div id="sig-modal" style="display:none;" class="fixed inset-0 bg-black/80 z-[200] flex-col justify-end lg:justify-center p-4">
         <div class="bg-white rounded-3xl w-full max-w-md mx-auto p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-4"><span class="font-bold text-blue-600 text-xs text-center w-full">GAMBAR TTD</span><button onclick="closeSigModal()" class="text-3xl text-gray-400">&times;</button></div>
+            <div class="flex justify-between items-center mb-4"><span class="font-bold text-blue-600 text-xs text-center w-full uppercase">Gambar TTD</span><button onclick="closeSigModal()" class="text-3xl text-gray-400">&times;</button></div>
             <canvas id="signature-pad"></canvas>
             <div class="flex gap-3 mt-6">
                 <button onclick="resetPad()" class="flex-1 py-4 bg-gray-100 rounded-xl font-bold text-gray-500 uppercase text-xs">Hapus</button>
@@ -64,9 +64,12 @@
         }
         function closeSigModal() { modal.style.display = 'none'; }
         function resetPad() { ctx.clearRect(0,0,pad.width,pad.height); }
-        function confirmPad() { ttdImgData = pad.toDataURL('image/png'); closeSigModal(); }
+        function confirmPad() { 
+            ttdImgData = pad.toDataURL('image/png'); 
+            closeSigModal(); 
+            alert("Tanda tangan siap! Ketuk pada dokumen.");
+        }
 
-        // DRAWING LOGIC
         var isDrawing = false;
         function getXY(e) {
             var r = pad.getBoundingClientRect();
@@ -77,7 +80,6 @@
         pad.onmousemove = pad.ontouchmove = (e) => { if(!isDrawing) return; var p = getXY(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); };
         window.onmouseup = window.ontouchend = () => { isDrawing = false; };
 
-        // FILE HANDLING
         async function handleFile(e) {
             var file = e.target.files[0];
             if(!file) return;
@@ -121,7 +123,7 @@
                     box.className = 'sig-box';
                     box.id = 's-'+sId;
                     box.style.left = x+'px'; box.style.top = y+'px';
-                    box.innerHTML = '<img src="'+ttdImgData+'" style="width:100%; height:100%; pointer-events:none;">';
+                    box.innerHTML = '<img src="'+ttdImgData+'" style="width:100%; height:100%;">';
                     
                     box.onclick = function(se) {
                         se.stopPropagation(); box.remove();
@@ -131,37 +133,38 @@
                     wrap.appendChild(box);
                     signatures.push({
                         id: sId, pageIdx: pIdx,
-                        percX: x / cvs.width, // Simpan sebagai persentase lebar
-                        percY: y / cvs.height, // Simpan sebagai persentase tinggi
+                        percX: x / cvs.width,
+                        percY: y / cvs.height,
                         img: ttdImgData
                     });
                 };
             }
         }
 
-        // EXPORT CORE - NORMALIZED COORDINATES
         async function exportDoc() {
             if(!pdfBytes || signatures.length === 0) return alert("Upload PDF & Tempel TTD!");
             try {
                 const { PDFDocument } = PDFLib;
-                const pdfDoc = await PDFDocument.load(pdfBytes.slice(0));
+                // Selalu muat dari buffer murni
+                const pdfDoc = await PDFDocument.load(pdfBytes);
                 
                 for(const s of signatures) {
                     const imgBuffer = await fetch(s.img).then(res => res.arrayBuffer());
                     const embeddedImg = await pdfDoc.embedPng(imgBuffer);
                     
                     const page = pdfDoc.getPages()[s.pageIdx];
-                    const { width, height } = page.getSize(); // Ambil ukuran asli halaman PDF
-                    
-                    // UKURAN TTD (Relative ke ukuran halaman)
-                    const sigWidth = 100 * (width / 595); // Standarisasi berdasarkan lebar A4 (595 pt)
-                    const sigHeight = 50 * (height / 841); 
+                    const { width, height } = page.getSize(); 
+
+                    // Standar ukuran TTD 100x50 point (bisa diubah)
+                    const w = 100; 
+                    const h = 50;
 
                     page.drawImage(embeddedImg, {
-                        x: (s.percX * width) - (sigWidth / 2),
-                        y: height - (s.percY * height) - (sigHeight / 2), // Balik koordinat Y
-                        width: sigWidth,
-                        height: sigHeight
+                        x: (s.percX * width) - (w / 2),
+                        y: height - (s.percY * height) - (h / 2),
+                        width: w,
+                        height: h,
+                        opacity: 1 // Pastikan terlihat
                     });
                 }
                 
@@ -169,7 +172,7 @@
                 const blob = new Blob([finalPdf], {type: "application/pdf"});
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = "Approved_Document.pdf";
+                link.download = "Approved_Final.pdf";
                 link.click();
             } catch(e) { alert("Error: " + e.message); }
         }
