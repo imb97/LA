@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Approval - Draw & Place Signature</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <style>
+        :root { --primary: #2563eb; --bg: #f1f5f9; }
+        body { font-family: sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; margin: 0; }
+        
+        .toolbar { width: 100%; background: white; padding: 15px; display: flex; justify-content: center; gap: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        
+        /* Modal Signature Pad */
+        #sig-modal { 
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); justify-content: center; align-items: center; 
+        }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; text-align: center; }
+        #signature-pad { border: 2px solid #333; background: #fff; cursor: crosshair; touch-action: none; }
+        
+        /* PDF Preview */
+        #pdf-wrapper { margin: 20px; position: relative; background: white; box-shadow: 0 0 20px rgba(0,0,0,0.1); line-height: 0; }
+        #pdf-canvas { cursor: crosshair; }
+        .sig-box { position: absolute; border: 2px dashed var(--primary); pointer-events: none; width: 150px; height: 70px; display: flex; align-items: center; justify-content: center; }
+        .sig-box img { max-width: 100%; max-height: 100%; }
+
+        .btn { padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: #64748b; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <input type="file" id="upload-pdf" accept="application/pdf">
+    <button class="btn btn-secondary" id="open-draw">1. Gambar TTD</button>
+    <button class="btn btn-primary" id="export-btn" disabled>2. Simpan Dokumen</button>
+</div>
+
+<div id="sig-modal">
+    <div class="modal-content">
+        <h3>Gambar Tanda Tangan Anda</h3>
+        <canvas id="signature-pad" width="400" height="200"></canvas>
+        <div style="margin-top: 15px; gap: 10px; display: flex; justify-content: center;">
+            <button class="btn btn-secondary" id="clear-pad">Hapus</button>
+            <button class="btn btn-primary" id="save-pad">Gunakan TTD</button>
+        </div>
+    </div>
+</div>
+
+<div id="pdf-wrapper">
+    <canvas id="pdf-canvas"></canvas>
+</div>
+
+<script>
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+    let pdfDoc = null;
+    let signatureImage = null; // Menyimpan hasil gambar ttd
+    let coords = null;
+
+    // --- LOGIKA SIGNATURE PAD (DRAWING) ---
+    const sigCanvas = document.getElementById('signature-pad');
+    const sigCtx = sigCanvas.getContext('2d');
+    let drawing = false;
+
+    function getMousePos(canvasDom, touchOrMouseEvent) {
+        const rect = canvasDom.getBoundingClientRect();
+        const clientX = touchOrMouseEvent.touches ? touchOrMouseEvent.touches[0].clientX : touchOrMouseEvent.clientX;
+        const clientY = touchOrMouseEvent.touches ? touchOrMouseEvent.touches[0].clientY : touchOrMouseEvent.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    const startDrawing = (e) => { drawing = true; draw(e); };
+    const stopDrawing = () => { drawing = false; sigCtx.beginPath(); };
+    const draw = (e) => {
+        if (!drawing) return;
+        const pos = getMousePos(sigCanvas, e);
+        sigCtx.lineWidth = 2;
+        sigCtx.lineCap = 'round';
+        sigCtx.lineTo(pos.x, pos.y);
+        sigCtx.stroke();
+        sigCtx.beginPath();
+        sigCtx.moveTo(pos.x, pos.y);
+    };
+
+    sigCanvas.addEventListener('mousedown', startDrawing);
+    sigCanvas.addEventListener('mousemove', draw);
+    sigCanvas.addEventListener('mouseup', stopDrawing);
+    sigCanvas.addEventListener('touchstart', startDrawing);
+    sigCanvas.addEventListener('touchmove', draw);
+    sigCanvas.addEventListener('touchend', stopDrawing);
+
+    document.getElementById('open-draw').addEventListener('click', () => {
+        document.getElementById('sig-modal').style.display = 'flex';
+    });
+
+    document.getElementById('clear-pad').addEventListener('click', () => {
+        sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    });
+
+    document.getElementById('save-pad').addEventListener('click', () => {
+        signatureImage = sigCanvas.toDataURL('image/png'); // Simpan sebagai Base64
+        document.getElementById('sig-modal').style.display = 'none';
+        alert("TTD tersimpan! Sekarang klik pada dokumen untuk menempatkannya.");
+    });
+
+    // --- LOGIKA PDF RENDER & PLACEMENT ---
+    const pdfCanvas = document.getElementById('pdf-canvas');
+    const pdfCtx = pdfCanvas.getContext('2d');
+
+    document.getElementById('upload-pdf').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = async function() {
+            const typedarray = new Uint8Array(this.result);
+            pdfDoc = await pdfjsLib.getDocument(typedarray).promise;
+            const page = await pdfDoc.getPage(1);
+            const viewport = page.getViewport({ scale: 1.5 });
+            pdfCanvas.height = viewport.height;
+            pdfCanvas.width = viewport.width;
+            await page.render({ canvasContext: pdfCtx, viewport: viewport }).promise;
+            document.getElementById('export-btn').disabled = false;
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    pdfCanvas.addEventListener('click', (e) => {
+        if (!signatureImage) return alert("Gambar TTD dulu!");
+        
+        const rect = pdfCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Visualisasi di layar
+        const oldBox = document.querySelector('.sig-box');
+        if (oldBox) oldBox.remove();
+
+        const box = document.createElement('div');
+        box.className = 'sig-box';
+        box.style.left = (x - 75) + 'px';
+        box.style.top = (y - 35) + 'px';
+        
+        const img = document.createElement('img');
+        img.src = signatureImage;
+        box.appendChild(img);
+        
+        document.getElementById('pdf-wrapper').appendChild(box);
+
+        coords = { x, y: pdfCanvas.height - y, page: 1 };
+        console.log("Siap kirim ke backend:", coords);
+    });
+</script>
+
+</body>
+</html>
