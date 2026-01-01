@@ -2,101 +2,92 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Web Approval</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Modern Web Approval - Responsive</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <style>
-        body { background-color: #f3f4f6; }
-        .pdf-page-canvas { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-radius: 4px; }
+        body { background-color: #f8fafc; }
+        .page-wrapper { position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: white; margin-bottom: 20px; }
+        canvas { max-width: 100%; height: auto; display: block; }
         .sig-box { 
-            position: absolute; border: 2px dashed #2563eb; pointer-events: none; 
-            width: 120px; height: 60px; transform: translate(-50%, -50%); 
-            display: flex; align-items: center; justify-content: center; background: rgba(37, 99, 235, 0.05);
+            position: absolute; border: 2px dashed #2563eb; width: 100px; height: 50px; 
+            transform: translate(-50%, -50%); pointer-events: none; background: rgba(37, 99, 235, 0.05);
         }
-        #signature-pad { cursor: crosshair; touch-action: none; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
+        #signature-pad { touch-action: none; background: #fff; width: 100%; height: 250px; border: 1px solid #e2e8f0; border-radius: 12px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <nav class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center sticky top-0 z-50">
-        <div class="flex items-center gap-2">
-            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">A</div>
-            <h1 class="text-xl font-bold text-gray-800 tracking-tight">Approve<span class="text-blue-600">Doc</span></h1>
-        </div>
-        <div class="flex gap-3">
-            <label for="upload-pdf" class="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition">
-                Upload PDF
-            </label>
+    <nav class="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center sticky top-0 z-[100]">
+        <h1 class="font-bold text-xl text-blue-600">Approve<span class="text-gray-800">Doc</span></h1>
+        <div class="flex gap-2">
+            <label for="upload-pdf" class="cursor-pointer bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-xs font-bold uppercase hover:bg-gray-200">Upload</label>
             <input type="file" id="upload-pdf" accept="application/pdf" class="hidden">
-            <button id="export-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
-                Export & Download
-            </button>
+            <button id="export-btn" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold uppercase shadow-sm">Export</button>
         </div>
     </nav>
 
-    <div class="flex flex-1 overflow-hidden">
-        <aside class="w-72 bg-white border-r border-gray-200 p-6 flex flex-col gap-6 overflow-y-auto">
-            <div>
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Pengaturan Tanda Tangan</p>
-                <button id="open-draw" class="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-blue-400 hover:text-blue-500 transition flex flex-col items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                    <span class="text-sm font-medium">Gambar Tanda Tangan</span>
-                </button>
-            </div>
+    <div class="flex flex-col lg:flex-row flex-1 overflow-hidden">
+        
+        <aside class="w-full lg:w-80 bg-white border-b lg:border-r border-gray-200 p-4 lg:p-6 flex flex-col gap-4">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Alat Approval</p>
+            
+            <button id="open-draw" class="flex items-center justify-center gap-3 w-full py-4 bg-blue-50 text-blue-600 rounded-xl border-2 border-blue-100 hover:bg-blue-100 transition group">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                <span class="font-bold text-sm text-blue-700">Buat Tanda Tangan</span>
+            </button>
 
-            <div id="status-panel" class="hidden">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Instruksi</p>
-                <div class="bg-blue-50 text-blue-700 p-3 rounded-lg text-sm">
-                    Klik pada area dokumen untuk menempelkan tanda tangan.
-                </div>
+            <div id="instr-box" class="hidden lg:block bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <p class="text-xs text-gray-500 leading-relaxed">
+                    <span class="font-bold text-gray-700">Instruksi:</span><br>
+                    1. Gambar TTD Anda.<br>
+                    2. Klik/Tap pada area dokumen untuk menempelkan TTD tersebut.
+                </p>
             </div>
         </aside>
 
-        <main class="flex-1 overflow-y-auto p-12 flex flex-col items-center bg-gray-50">
-            <div id="pdf-main-container" class="flex flex-col gap-8 max-w-4xl w-full">
-                <div class="text-center py-20 text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <p>Belum ada dokumen yang diunggah</p>
+        <main class="flex-1 overflow-y-auto p-4 lg:p-10 flex flex-col items-center bg-gray-50">
+            <div id="pdf-container" class="w-full max-w-3xl">
+                <div id="empty-state" class="py-20 text-center text-gray-400">
+                    <p>Silakan unggah dokumen PDF</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <div id="sig-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 transition-all scale-95">
+    <div id="sig-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden flex-col justify-end lg:justify-center p-0 lg:p-4">
+        <div class="bg-white rounded-t-3xl lg:rounded-2xl w-full max-w-xl mx-auto p-6 lg:p-8 animate-slide-up">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-gray-800">Tanda Tangan Digital</h3>
-                <button id="close-modal" class="text-gray-400 hover:text-gray-600">✕</button>
+                <h3 class="font-bold text-lg text-gray-800">Gambarkan Tanda Tangan</h3>
+                <button id="close-modal" class="p-2 text-gray-400 hover:text-gray-800">✕</button>
             </div>
-            
-            <div class="flex gap-4 mb-4">
+
+            <div class="flex gap-4 mb-4 items-center">
                 <div class="flex-1">
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Warna</label>
-                    <div class="flex gap-2">
-                        <button class="color-opt w-8 h-8 rounded-full bg-black border-2 border-transparent" data-color="#000000"></button>
-                        <button class="color-opt w-8 h-8 rounded-full bg-blue-800 border-2 border-transparent" data-color="#1e3a8a"></button>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Warna</label>
+                    <div class="flex gap-3 mt-2">
+                        <button class="color-opt w-8 h-8 rounded-full bg-black ring-2 ring-offset-2 ring-black" data-color="#000"></button>
+                        <button class="color-opt w-8 h-8 rounded-full bg-blue-900" data-color="#1e3a8a"></button>
                     </div>
                 </div>
                 <div class="flex-1">
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Ketebalan</label>
-                    <select id="pen-weight" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-sm">
-                        <option value="1.5">Tipis</option>
-                        <option value="3" selected>Sedang</option>
-                        <option value="5">Tebal</option>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Ketebalan</label>
+                    <select id="pen-weight" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm mt-2">
+                        <option value="2">Tipis</option>
+                        <option value="4" selected>Sedang</option>
+                        <option value="6">Tebal</option>
                     </select>
                 </div>
             </div>
 
-            <canvas id="signature-pad" width="450" height="200" class="w-full"></canvas>
-            
-            <div class="flex gap-3 mt-8">
-                <button id="clear-pad" class="flex-1 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium transition">Hapus</button>
-                <button id="save-pad" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">Simpan Tanda Tangan</button>
+            <canvas id="signature-pad"></canvas>
+
+            <div class="flex gap-3 mt-6">
+                <button id="clear-pad" class="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-50 rounded-xl transition">Hapus</button>
+                <button id="save-pad" class="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition">Gunakan</button>
             </div>
         </div>
     </div>
@@ -105,24 +96,18 @@
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-        let pdfDoc = null;
-        let signatureImage = null;
-        let penColor = "#000000";
-        let penWeight = 3;
-
-        // --- SIGNATURE PAD LOGIC ---
+        let pdfDoc = null, signatureImage = null, penColor = "#000", drawing = false;
         const sigCanvas = document.getElementById('signature-pad');
         const sigCtx = sigCanvas.getContext('2d');
-        let drawing = false;
 
-        document.querySelectorAll('.color-opt').forEach(opt => {
-            opt.onclick = () => {
-                document.querySelectorAll('.color-opt').forEach(b => b.classList.remove('border-blue-500'));
-                opt.classList.add('border-blue-500');
-                penColor = opt.dataset.color;
-            }
-        });
+        function resizeSigCanvas() {
+            const rect = sigCanvas.getBoundingClientRect();
+            sigCanvas.width = rect.width * (window.devicePixelRatio || 1);
+            sigCanvas.height = rect.height * (window.devicePixelRatio || 1);
+            sigCtx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+        }
 
+        // --- Drawing Logic ---
         const getPos = (e) => {
             const r = sigCanvas.getBoundingClientRect();
             const cx = e.touches ? e.touches[0].clientX : e.clientX;
@@ -133,7 +118,7 @@
         const start = (e) => { drawing = true; sigCtx.beginPath(); const p = getPos(e); sigCtx.moveTo(p.x, p.y); };
         const draw = (e) => {
             if (!drawing) return;
-            e.preventDefault();
+            if (e.touches) e.preventDefault();
             const p = getPos(e);
             sigCtx.lineWidth = document.getElementById('pen-weight').value;
             sigCtx.strokeStyle = penColor;
@@ -142,67 +127,74 @@
             sigCtx.stroke();
         };
 
-        sigCanvas.addEventListener('mousedown', start);
-        sigCanvas.addEventListener('mousemove', draw);
-        window.addEventListener('mouseup', () => drawing = false);
-        sigCanvas.addEventListener('touchstart', start);
-        sigCanvas.addEventListener('touchmove', draw);
-        sigCanvas.addEventListener('touchend', () => drawing = false);
+        sigCanvas.onmousedown = sigCanvas.ontouchstart = start;
+        sigCanvas.onmousemove = sigCanvas.ontouchmove = draw;
+        window.onmouseup = window.ontouchend = () => drawing = false;
 
-        // --- PDF RENDER LOGIC ---
-        document.getElementById('upload-pdf').addEventListener('change', async (e) => {
+        // --- PDF Rendering ---
+        document.getElementById('upload-pdf').onchange = async (e) => {
             const file = e.target.files[0];
             if (!file) return;
+            document.getElementById('empty-state').classList.add('hidden');
             const reader = new FileReader();
             reader.onload = async function() {
                 const typedarray = new Uint8Array(this.result);
                 pdfDoc = await pdfjsLib.getDocument(typedarray).promise;
-                const container = document.getElementById('pdf-main-container');
+                const container = document.getElementById('pdf-container');
                 container.innerHTML = '';
+
                 for (let i = 1; i <= pdfDoc.numPages; i++) {
-                    await renderPage(i, container);
+                    const page = await pdfDoc.getPage(i);
+                    // Responsive Scale
+                    const scale = (container.offsetWidth) / page.getViewport({scale:1}).width;
+                    const viewport = page.getViewport({ scale: scale });
+                    
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'page-wrapper';
+                    const canvas = document.createElement('canvas');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    wrapper.appendChild(canvas);
+                    container.appendChild(wrapper);
+                    
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+                    canvas.onclick = (ev) => {
+                        if (!signatureImage) return alert("Gambar Tanda Tangan Dulu!");
+                        document.querySelectorAll('.sig-box').forEach(el => el.remove());
+                        const r = canvas.getBoundingClientRect();
+                        const box = document.createElement('div');
+                        box.className = 'sig-box';
+                        box.style.left = (ev.clientX - r.left) + 'px';
+                        box.style.top = (ev.clientY - r.top) + 'px';
+                        box.innerHTML = `<img src="${signatureImage}" class="w-full h-full object-contain">`;
+                        wrapper.appendChild(box);
+                    };
                 }
             };
             reader.readAsArrayBuffer(file);
-        });
+        };
 
-        async function renderPage(num, container) {
-            const page = await pdfDoc.getPage(num);
-            const viewport = page.getViewport({ scale: 1.5 });
-            const wrapper = document.createElement('div');
-            wrapper.className = 'page-wrapper relative bg-white mx-auto';
-            const canvas = document.createElement('canvas');
-            canvas.className = 'pdf-page-canvas';
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-            wrapper.appendChild(canvas);
-            container.appendChild(wrapper);
-            await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-
-            canvas.onclick = (e) => {
-                if (!signatureImage) return alert("Silakan buat tanda tangan terlebih dahulu.");
-                document.querySelectorAll('.sig-box').forEach(el => el.remove());
-                const r = canvas.getBoundingClientRect();
-                const box = document.createElement('div');
-                box.className = 'sig-box';
-                box.style.left = (e.clientX - r.left) + 'px';
-                box.style.top = (e.clientY - r.top) + 'px';
-                const img = document.createElement('img');
-                img.src = signatureImage;
-                box.appendChild(img);
-                wrapper.appendChild(box);
-            };
-        }
-
-        // --- UI TOGGLES ---
-        document.getElementById('open-draw').onclick = () => document.getElementById('sig-modal').style.display = 'flex';
-        document.getElementById('close-modal').onclick = () => document.getElementById('sig-modal').style.display = 'none';
-        document.getElementById('clear-pad').onclick = () => sigCtx.clearRect(0,0,450,200);
+        // --- UI Interactions ---
+        document.getElementById('open-draw').onclick = () => {
+            document.getElementById('sig-modal').classList.remove('hidden');
+            document.getElementById('sig-modal').classList.add('flex');
+            resizeSigCanvas();
+        };
+        document.getElementById('close-modal').onclick = () => document.getElementById('sig-modal').classList.add('hidden');
+        document.getElementById('clear-pad').onclick = () => sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);
         document.getElementById('save-pad').onclick = () => {
             signatureImage = sigCanvas.toDataURL();
-            document.getElementById('sig-modal').style.display = 'none';
-            document.getElementById('status-panel').classList.remove('hidden');
+            document.getElementById('sig-modal').classList.add('hidden');
+            document.getElementById('instr-box').classList.remove('hidden');
         };
+        document.querySelectorAll('.color-opt').forEach(opt => {
+            opt.onclick = () => {
+                penColor = opt.dataset.color;
+                document.querySelectorAll('.color-opt').forEach(b => b.classList.remove('ring-2','ring-offset-2','ring-black'));
+                opt.classList.add('ring-2','ring-offset-2','ring-black');
+            }
+        });
     </script>
 </body>
 </html>
