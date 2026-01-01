@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Modern Web Approval - Fix Version</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <style>
+        body { background-color: #f8fafc; }
+        .page-wrapper { position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: white; margin-bottom: 20px; }
+        canvas { max-width: 100%; height: auto; display: block; }
+        .sig-box { 
+            position: absolute; border: 2px dashed #2563eb; width: 100px; height: 50px; 
+            transform: translate(-50%, -50%); pointer-events: none; background: rgba(37, 99, 235, 0.05);
+        }
+        #signature-pad { touch-action: none; background: #fff; width: 100%; height: 250px; border: 1px solid #e2e8f0; border-radius: 12px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <nav class="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center sticky top-0 z-[100]">
+        <h1 class="font-bold text-xl text-blue-600">Approve<span class="text-gray-800 text-sm">Doc v2</span></h1>
+        <div class="flex gap-2">
+            <label for="upload-pdf" class="cursor-pointer bg-blue-50 text-blue-600 px-3 py-2 rounded-lg text-xs font-bold uppercase hover:bg-blue-100 transition">Upload</label>
+            <input type="file" id="upload-pdf" accept="application/pdf" class="hidden">
+            <button id="export-btn" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold uppercase shadow-sm">Export</button>
+        </div>
+    </nav>
+
+    <div class="flex flex-col lg:flex-row flex-1 overflow-hidden">
+        <aside class="w-full lg:w-80 bg-white border-b lg:border-r border-gray-200 p-4 lg:p-6 flex flex-col gap-4">
+            <button id="open-draw" class="flex items-center justify-center gap-3 w-full py-4 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                <span class="font-bold text-sm">1. Buat Tanda Tangan</span>
+            </button>
+            <div id="instr-box" class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <p class="text-[11px] text-blue-800 leading-relaxed">
+                    <b>Instruksi Mobile:</b><br>
+                    1. Klik tombol Biru di atas.<br>
+                    2. Gambar TTD lalu klik Selesai.<br>
+                    3. Klik area manapun pada PDF untuk menaruh TTD.
+                </p>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-4 lg:p-10 flex flex-col items-center bg-gray-50">
+            <div id="pdf-container" class="w-full max-w-3xl">
+                <div id="empty-state" class="py-20 text-center text-gray-400">
+                    <p>Silakan upload dokumen PDF untuk memulai</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="sig-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden flex-col justify-end lg:justify-center p-0 lg:p-4">
+        <div class="bg-white rounded-t-3xl lg:rounded-2xl w-full max-w-xl mx-auto p-6 lg:p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-bold text-lg">Gambar TTD Anda</h3>
+                <button id="close-modal" class="p-2 text-gray-400 text-2xl">✕</button>
+            </div>
+            <div class="flex gap-4 mb-4">
+                <div class="flex-1">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase">Warna</span>
+                    <div class="flex gap-3 mt-2">
+                        <button class="color-opt w-8 h-8 rounded-full bg-black ring-2 ring-offset-2 ring-black" data-color="#000"></button>
+                        <button class="color-opt w-8 h-8 rounded-full bg-blue-900" data-color="#1e3a8a"></button>
+                    </div>
+                </div>
+                <div class="flex-1 text-right">
+                    <button id="clear-pad" class="text-sm text-red-500 font-bold underline">Hapus Coretan</button>
+                </div>
+            </div>
+            <canvas id="signature-pad"></canvas>
+            <button id="save-pad" class="w-full mt-6 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700">Simpan Tanda Tangan</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const pdfjsLib = window['pdfjs-dist/build/pdf'];
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+            let pdfDoc = null, signatureImage = null, penColor = "#000", drawing = false;
+            const sigCanvas = document.getElementById('signature-pad');
+            const sigCtx = sigCanvas.getContext('2d');
+            const sigModal = document.getElementById('sig-modal');
+
+            // --- Fungsi Penyesuaian Canvas TTD ---
+            function resizeSigCanvas() {
+                const rect = sigCanvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                sigCanvas.width = rect.width * dpr;
+                sigCanvas.height = rect.height * dpr;
+                sigCtx.scale(dpr, dpr);
+                sigCtx.lineCap = 'round';
+                sigCtx.lineWidth = 3;
+            }
+
+            // --- Handler Tombol & Modal ---
+            document.getElementById('open-draw').addEventListener('click', () => {
+                sigModal.classList.remove('hidden');
+                sigModal.classList.add('flex');
+                resizeSigCanvas();
+            });
+
+            document.getElementById('close-modal').addEventListener('click', () => {
+                sigModal.classList.add('hidden');
+                sigModal.classList.remove('flex');
+            });
+
+            document.getElementById('save-pad').addEventListener('click', () => {
+                signatureImage = sigCanvas.toDataURL();
+                sigModal.classList.add('hidden');
+                alert("Tanda tangan tersimpan! Klik pada dokumen untuk menempatkan.");
+            });
+
+            document.getElementById('clear-pad').addEventListener('click', () => {
+                sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+            });
+
+            // --- Logika Gambar TTD ---
+            const getPos = (e) => {
+                const r = sigCanvas.getBoundingClientRect();
+                const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                const cy = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: cx - r.left, y: cy - r.top };
+            };
+
+            const startDraw = (e) => { drawing = true; sigCtx.beginPath(); const p = getPos(e); sigCtx.moveTo(p.x, p.y); };
+            const moveDraw = (e) => {
+                if (!drawing) return;
+                if (e.touches) e.preventDefault();
+                const p = getPos(e);
+                sigCtx.strokeStyle = penColor;
+                sigCtx.lineTo(p.x, p.y);
+                sigCtx.stroke();
+            };
+
+            sigCanvas.addEventListener('mousedown', startDraw);
+            sigCanvas.addEventListener('mousemove', moveDraw);
+            window.addEventListener('mouseup', () => drawing = false);
+
+            sigCanvas.addEventListener('touchstart', startDraw, {passive: false});
+            sigCanvas.addEventListener('touchmove', moveDraw, {passive: false});
+            sigCanvas.addEventListener('touchend', () => drawing = false);
+
+            // --- Logika Render PDF ---
+            document.getElementById('upload-pdf').addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                document.getElementById('empty-state').classList.add('hidden');
+                const reader = new FileReader();
+                reader.onload = async function() {
+                    try {
+                        const typedarray = new Uint8Array(this.result);
+                        pdfDoc = await pdfjsLib.getDocument(typedarray).promise;
+                        const container = document.getElementById('pdf-container');
+                        container.innerHTML = '';
+
+                        for (let i = 1; i <= pdfDoc.numPages; i++) {
+                            const page = await pdfDoc.getPage(i);
+                            const scale = (container.offsetWidth) / page.getViewport({scale:1}).width;
+                            const viewport = page.getViewport({ scale: scale });
+                            
+                            const wrapper = document.createElement('div');
+                            wrapper.className = 'page-wrapper';
+                            const canvas = document.createElement('canvas');
+                            canvas.height = viewport.height;
+                            canvas.width = viewport.width;
+                            wrapper.appendChild(canvas);
+                            container.appendChild(wrapper);
+                            
+                            await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+                            canvas.addEventListener('click', (ev) => {
+                                if (!signatureImage) return alert("Gambar Tanda Tangan Dulu!");
+                                document.querySelectorAll('.sig-box').forEach(el => el.remove());
+                                const r = canvas.getBoundingClientRect();
+                                const box = document.createElement('div');
+                                box.className = 'sig-box';
+                                box.style.left = (ev.clientX - r.left) + 'px';
+                                box.style.top = (ev.clientY - r.top) + 'px';
+                                box.innerHTML = `<img src="${signatureImage}" class="w-full h-full object-contain">`;
+                                wrapper.appendChild(box);
+                            });
+                        }
+                    } catch (err) {
+                        console.error("PDF Load Error: ", err);
+                        alert("Gagal memuat PDF. Pastikan file valid.");
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+
+            // Ganti warna pen
+            document.querySelectorAll('.color-opt').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    penColor = opt.dataset.color;
+                    document.querySelectorAll('.color-opt').forEach(b => b.classList.remove('ring-2','ring-offset-2','ring-black'));
+                    opt.classList.add('ring-2','ring-offset-2','ring-black');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
