@@ -3,176 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ApproveDoc v16 - Ultra Compatible</title>
+    <title>ApproveDoc v17 - Drag & Drop</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
     <style>
-        .page-wrapper { position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: white; margin-bottom: 20px; width: 100%; max-width: 800px; }
-        canvas { max-width: 100%; height: auto; display: block; }
-        .sig-box { 
-            position: absolute; border: 2px dashed #2563eb; width: 100px; height: 50px; 
-            transform: translate(-50%, -50%); cursor: pointer; background: rgba(37, 99, 235, 0.1);
-            z-index: 999;
+        .page-wrapper { position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: white; margin-bottom: 20px; width: 100%; max-width: 800px; overflow: hidden; }
+        canvas { width: 100%; height: auto; display: block; }
+        .sig-item { 
+            position: absolute; width: 120px; height: 60px; 
+            border: 2px solid #2563eb; background: rgba(37, 99, 235, 0.1);
+            cursor: move; touch-action: none; z-index: 50;
+            display: flex; align-items: center; justify-content: center;
         }
+        .sig-item img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        .delete-btn { position: absolute; top: -10px; right: -10px; background: red; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; line-height: 20px; text-align: center; }
         #signature-pad { touch-action: none; background: #fff; width: 100%; height: 250px; border: 2px solid #3b82f6; border-radius: 12px; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
 
     <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-[100]">
-        <h1 class="font-bold text-blue-600">ApproveDoc v16</h1>
+        <h1 class="font-bold text-blue-600 uppercase tracking-tighter">ApproveDoc v17</h1>
         <div class="flex gap-2">
-            <button onclick="document.getElementById('upload-pdf').click()" class="bg-slate-200 px-4 py-2 rounded-lg text-xs font-bold uppercase">1. Upload</button>
+            <button onclick="document.getElementById('upload-pdf').click()" class="bg-slate-200 px-4 py-2 rounded-lg text-xs font-bold">1. UPLOAD</button>
             <input type="file" id="upload-pdf" accept="application/pdf" class="hidden" onchange="handleFile(event)">
-            <button onclick="exportDoc()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase shadow-lg">2. Export</button>
+            <button onclick="exportDoc()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold">2. EXPORT</button>
         </div>
     </nav>
 
     <main class="p-4 flex flex-col items-center">
-        <button onclick="openSigModal()" class="mb-4 w-full max-w-md py-5 bg-blue-50 border-2 border-blue-400 text-blue-700 rounded-2xl font-bold">
+        <button onclick="openSigModal()" class="mb-4 w-full max-w-md py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg">
             ✍️ BUAT TANDA TANGAN
         </button>
+        <p class="text-[10px] text-gray-500 mb-4 text-center">Setelah muncul di dokumen, GESER tanda tangan ke posisi yang diinginkan.</p>
         <div id="pdf-container" class="w-full flex flex-col items-center"></div>
     </main>
 
     <div id="sig-modal" style="display:none;" class="fixed inset-0 bg-black/80 z-[200] flex-col justify-end lg:justify-center p-4">
-        <div class="bg-white rounded-3xl w-full max-w-md mx-auto p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-4"><span class="font-bold text-blue-600 text-xs text-center w-full uppercase">Gambar TTD</span><button onclick="closeSigModal()" class="text-3xl text-gray-400">&times;</button></div>
+        <div class="bg-white rounded-3xl w-full max-w-md mx-auto p-6">
+            <div class="flex justify-between items-center mb-4"><span class="font-bold text-blue-600">GAMBAR TTD</span><button onclick="closeSigModal()" class="text-3xl text-gray-400">&times;</button></div>
             <canvas id="signature-pad"></canvas>
             <div class="flex gap-3 mt-6">
-                <button onclick="resetPad()" class="flex-1 py-4 bg-gray-100 rounded-xl font-bold text-gray-500 uppercase text-xs">Hapus</button>
-                <button onclick="confirmPad()" class="flex-1 py-4 bg-blue-600 text-white rounded-xl font-bold uppercase text-xs">Simpan</button>
+                <button onclick="resetPad()" class="flex-1 py-4 bg-gray-100 rounded-xl font-bold">Hapus</button>
+                <button onclick="confirmPad()" class="flex-1 py-4 bg-blue-600 text-white rounded-xl font-bold">Gunakan</button>
             </div>
         </div>
     </div>
 
     <script>
         var pdfBytes = null;
-        var ttdImgData = null;
-        var signatures = [];
+        var ttdImg = null;
         var modal = document.getElementById('sig-modal');
         var pad = document.getElementById('signature-pad');
         var ctx = pad.getContext('2d');
 
-        function openSigModal() {
-            modal.style.display = 'flex';
-            setTimeout(() => { 
-                pad.width = pad.offsetWidth; pad.height = pad.offsetHeight; 
-                ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
-            }, 100);
-        }
+        function openSigModal() { modal.style.display = 'flex'; setTimeout(() => { pad.width = pad.offsetWidth; pad.height = pad.offsetHeight; ctx.lineWidth = 4; ctx.lineCap = 'round'; }, 100); }
         function closeSigModal() { modal.style.display = 'none'; }
         function resetPad() { ctx.clearRect(0,0,pad.width,pad.height); }
-        function confirmPad() { 
-            ttdImgData = pad.toDataURL('image/png'); 
-            closeSigModal(); 
-            alert("Tanda tangan siap! Ketuk pada dokumen.");
-        }
+        function confirmPad() { ttdImg = pad.toDataURL(); closeSigModal(); alert("TTD Siap! Klik di halaman mana saja untuk menempelkan."); }
 
+        // DRAWING LOGIC
         var isDrawing = false;
-        function getXY(e) {
-            var r = pad.getBoundingClientRect();
-            var t = e.touches ? e.touches[0] : e;
-            return { x: t.clientX - r.left, y: t.clientY - r.top };
-        }
-        pad.onmousedown = pad.ontouchstart = (e) => { isDrawing = true; ctx.beginPath(); var p = getXY(e); ctx.moveTo(p.x, p.y); if(e.touches) e.preventDefault(); };
+        function getXY(e) { var r = pad.getBoundingClientRect(); var t = e.touches ? e.touches[0] : e; return { x: t.clientX - r.left, y: t.clientY - r.top }; }
+        pad.onmousedown = pad.ontouchstart = (e) => { isDrawing = true; ctx.beginPath(); var p = getXY(e); ctx.moveTo(p.x, p.y); };
         pad.onmousemove = pad.ontouchmove = (e) => { if(!isDrawing) return; var p = getXY(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); };
         window.onmouseup = window.ontouchend = () => { isDrawing = false; };
 
+        // FILE HANDLING
         async function handleFile(e) {
             var file = e.target.files[0];
             if(!file) return;
             var reader = new FileReader();
-            reader.onload = async function() {
-                pdfBytes = new Uint8Array(this.result);
-                renderPDF();
-            };
+            reader.onload = async function() { pdfBytes = new Uint8Array(this.result); renderPDF(); };
             reader.readAsArrayBuffer(file);
         }
 
         async function renderPDF() {
             var pdfjs = window['pdfjs-dist/build/pdf'];
             pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-            var doc = await pdfjs.getDocument({data: pdfBytes.slice(0)}).promise;
+            var doc = await pdfjs.getDocument({data: pdfBytes}).promise;
             var container = document.getElementById('pdf-container');
-            container.innerHTML = ''; signatures = [];
+            container.innerHTML = '';
 
             for(var i=1; i<=doc.numPages; i++) {
-                let pIdx = i - 1;
                 var page = await doc.getPage(i);
                 var scale = container.offsetWidth / page.getViewport({scale:1}).width;
                 var vp = page.getViewport({scale: scale});
                 
                 var wrap = document.createElement('div');
                 wrap.className = 'page-wrapper';
+                wrap.dataset.pageIdx = i-1;
+                
                 var cvs = document.createElement('canvas');
                 cvs.width = vp.width; cvs.height = vp.height;
                 wrap.appendChild(cvs);
                 container.appendChild(wrap);
                 await page.render({canvasContext: cvs.getContext('2d'), viewport: vp}).promise;
 
+                // CLICK TO ADD
                 cvs.onclick = function(ev) {
-                    if(!ttdImgData) return alert("Buat TTD Dulu!");
-                    var r = cvs.getBoundingClientRect();
-                    var x = ev.clientX - r.left;
-                    var y = ev.clientY - r.top;
-                    var sId = Date.now();
-
-                    var box = document.createElement('div');
-                    box.className = 'sig-box';
-                    box.id = 's-'+sId;
-                    box.style.left = x+'px'; box.style.top = y+'px';
-                    box.innerHTML = '<img src="'+ttdImgData+'" style="width:100%; height:100%;">';
-                    
-                    box.onclick = function(se) {
-                        se.stopPropagation(); box.remove();
-                        signatures = signatures.filter(s => s.id !== sId);
-                    };
-
-                    wrap.appendChild(box);
-                    signatures.push({
-                        id: sId, pageIdx: pIdx,
-                        percX: x / cvs.width,
-                        percY: y / cvs.height,
-                        img: ttdImgData
-                    });
+                    if(!ttdImg) return alert("Buat TTD Dulu!");
+                    addSigToPage(this.parentElement, ev.offsetX, ev.offsetY);
                 };
             }
         }
 
+        function addSigToPage(parent, x, y) {
+            var sig = document.createElement('div');
+            sig.className = 'sig-item';
+            sig.style.left = x + 'px';
+            sig.style.top = y + 'px';
+            sig.innerHTML = '<img src="'+ttdImg+'"><div class="delete-btn" onclick="this.parentElement.remove()">×</div>';
+            
+            // DRAG LOGIC
+            let active = false;
+            let currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
+
+            const dragStart = (e) => {
+                initialX = (e.type === "touchstart" ? e.touches[0].clientX : e.clientX) - xOffset;
+                initialY = (e.type === "touchstart" ? e.touches[0].clientY : e.clientY) - yOffset;
+                if (e.target === sig) active = true;
+            };
+
+            const drag = (e) => {
+                if (active) {
+                    e.preventDefault();
+                    currentX = (e.type === "touchmove" ? e.touches[0].clientX : e.clientX) - initialX;
+                    currentY = (e.type === "touchmove" ? e.touches[0].clientY : e.clientY) - initialY;
+                    xOffset = currentX; yOffset = currentY;
+                    sig.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+                }
+            };
+
+            const dragEnd = () => { active = false; };
+
+            sig.addEventListener("touchstart", dragStart, false);
+            sig.addEventListener("touchend", dragEnd, false);
+            sig.addEventListener("touchmove", drag, false);
+            sig.addEventListener("mousedown", dragStart, false);
+            sig.addEventListener("mouseup", dragEnd, false);
+            sig.addEventListener("mousemove", drag, false);
+
+            parent.appendChild(sig);
+        }
+
         async function exportDoc() {
-            if(!pdfBytes || signatures.length === 0) return alert("Upload PDF & Tempel TTD!");
+            if(!pdfBytes) return alert("Upload PDF!");
+            var sigElements = document.querySelectorAll('.sig-item');
+            if(sigElements.length === 0) return alert("Tempel TTD!");
+
             try {
                 const { PDFDocument } = PDFLib;
-                // Selalu muat dari buffer murni
                 const pdfDoc = await PDFDocument.load(pdfBytes);
                 
-                for(const s of signatures) {
-                    const imgBuffer = await fetch(s.img).then(res => res.arrayBuffer());
-                    const embeddedImg = await pdfDoc.embedPng(imgBuffer);
+                for(let el of sigElements) {
+                    let parent = el.parentElement;
+                    let pIdx = parseInt(parent.dataset.pageIdx);
+                    let page = pdfDoc.getPages()[pIdx];
+                    let { width, height } = page.getSize();
                     
-                    const page = pdfDoc.getPages()[s.pageIdx];
-                    const { width, height } = page.getSize(); 
+                    // Hitung posisi final berdasarkan posisi visual terakhir di layar
+                    let rect = el.getBoundingClientRect();
+                    let parentRect = parent.getBoundingClientRect();
+                    
+                    let visualX = rect.left - parentRect.left + (rect.width / 2);
+                    let visualY = rect.top - parentRect.top + (rect.height / 2);
 
-                    // Standar ukuran TTD 100x50 point (bisa diubah)
-                    const w = 100; 
-                    const h = 50;
+                    const imgBuffer = await fetch(ttdImg).then(res => res.arrayBuffer());
+                    const embeddedImg = await pdfDoc.embedPng(imgBuffer);
 
                     page.drawImage(embeddedImg, {
-                        x: (s.percX * width) - (w / 2),
-                        y: height - (s.percY * height) - (h / 2),
-                        width: w,
-                        height: h,
-                        opacity: 1 // Pastikan terlihat
+                        x: (visualX / parentRect.width) * width - 50,
+                        y: height - ((visualY / parentRect.height) * height) - 25,
+                        width: 100, height: 50
                     });
                 }
                 
-                const finalPdf = await pdfDoc.save();
-                const blob = new Blob([finalPdf], {type: "application/pdf"});
+                const final = await pdfDoc.save();
+                const blob = new Blob([final], {type: "application/pdf"});
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = "Approved_Final.pdf";
+                link.download = "Approved_Fixed.pdf";
                 link.click();
             } catch(e) { alert("Error: " + e.message); }
         }
