@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ApproveDoc v6 - Stable</title>
+    <title>ApproveDoc v7 - Ultra Stable</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -15,6 +15,7 @@
             transform: translate(-50%, -50%); pointer-events: none; background: rgba(37, 99, 235, 0.1);
         }
         #signature-pad { touch-action: none; background: #fff; width: 100%; height: 250px; border: 1px solid #ddd; border-radius: 12px; }
+        .loading-btn { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col">
@@ -22,26 +23,26 @@
     <nav class="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-[100]">
         <h1 class="font-bold text-blue-600">ApproveDoc</h1>
         <div class="flex gap-2">
-            <label for="upload-pdf" class="cursor-pointer bg-slate-100 px-3 py-2 rounded-lg text-xs font-bold uppercase hover:bg-slate-200 transition">1. Upload</label>
+            <label id="lbl-upload" for="upload-pdf" class="loading-btn cursor-pointer bg-slate-100 px-3 py-2 rounded-lg text-xs font-bold uppercase transition">1. Tunggu...</label>
             <input type="file" id="upload-pdf" accept="application/pdf" class="hidden">
-            <button id="export-btn" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold uppercase shadow-md">2. Export</button>
+            <button id="export-btn" class="loading-btn bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold uppercase shadow-md">2. Export</button>
         </div>
     </nav>
 
     <main class="flex-1 p-4 flex flex-col items-center">
-        <button id="open-draw" class="mb-6 w-full max-w-md py-4 bg-white border-2 border-dashed border-blue-400 text-blue-600 rounded-xl font-bold hover:bg-blue-50 transition">
-            Klik Untuk Gambar Tanda Tangan
+        <button id="open-draw" class="loading-btn mb-6 w-full max-w-md py-4 bg-white border-2 border-dashed border-blue-400 text-blue-600 rounded-xl font-bold transition">
+            Menyiapkan Sistem...
         </button>
         
         <div id="pdf-container" class="w-full flex flex-col items-center">
-            <p id="empty-msg" class="text-center text-gray-400 mt-10 italic">Belum ada file diupload</p>
+            <p id="empty-msg" class="text-center text-gray-400 mt-10 italic">Pastikan koneksi internet aktif untuk memuat library</p>
         </div>
     </main>
 
     <div id="sig-modal" class="fixed inset-0 bg-black/70 z-[200] hidden flex-col justify-end lg:justify-center p-4 backdrop-blur-sm">
         <div class="bg-white rounded-3xl lg:rounded-2xl w-full max-w-md mx-auto p-6 shadow-2xl">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-gray-800 text-sm uppercase">Pengaturan Tanda Tangan</h3>
+                <h3 class="font-bold text-gray-800 text-sm uppercase">Tanda Tangan</h3>
                 <button id="close-modal" class="text-gray-400 text-2xl p-2">&times;</button>
             </div>
 
@@ -54,7 +55,7 @@
                     </div>
                 </div>
                 <div class="flex-1">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Tebal Garis</label>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Tebal</label>
                     <select id="pen-weight" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm">
                         <option value="2">Tipis</option>
                         <option value="4" selected>Sedang</option>
@@ -67,17 +68,18 @@
             
             <div class="flex gap-3 mt-6">
                 <button id="clear-pad" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm">Hapus</button>
-                <button id="save-pad" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg active:scale-95 transition">Simpan</button>
+                <button id="save-pad" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg">Simpan</button>
             </div>
         </div>
     </div>
 
     <script>
-    window.addEventListener('load', function() {
+    // FUNGSI UTAMA
+    function startApp() {
         const pdfjsLib = window['pdfjs-dist/build/pdf'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-        let pdfDocBytes = null; // Menyimpan copy data asli
+        let pdfDocBytes = null;
         let signatureImage = null;
         let signaturesList = [];
         let drawing = false;
@@ -85,6 +87,7 @@
 
         const els = {
             upload: document.getElementById('upload-pdf'),
+            lblUpload: document.getElementById('lbl-upload'),
             export: document.getElementById('export-btn'),
             openDraw: document.getElementById('open-draw'),
             modal: document.getElementById('sig-modal'),
@@ -97,18 +100,17 @@
             penWeight: document.getElementById('pen-weight')
         };
 
+        // AKTIFKAN TOMBOL SETELAH SIAP
+        els.lblUpload.innerText = "1. UPLOAD";
+        els.lblUpload.classList.remove('loading-btn');
+        els.export.classList.remove('loading-btn');
+        els.openDraw.innerText = "Klik Untuk Gambar Tanda Tangan";
+        els.openDraw.classList.remove('loading-btn');
+        els.emptyMsg.innerText = "Belum ada file diupload";
+
         const ctx = els.pad.getContext('2d');
 
-        // --- HANDLER WARNA ---
-        document.querySelectorAll('.color-opt').forEach(opt => {
-            opt.onclick = () => {
-                penColor = opt.dataset.color;
-                document.querySelectorAll('.color-opt').forEach(b => b.classList.remove('ring-2','ring-offset-2','ring-black'));
-                opt.classList.add('ring-2','ring-offset-2','ring-black');
-            }
-        });
-
-        // --- MODAL & DRAW LOGIC ---
+        // HANDLER MODAL & DRAW
         els.openDraw.onclick = () => {
             els.modal.classList.remove('hidden');
             els.modal.classList.add('flex');
@@ -117,18 +119,25 @@
         };
         els.closeModal.onclick = () => els.modal.classList.add('hidden');
 
-        function getPos(e) {
+        document.querySelectorAll('.color-opt').forEach(opt => {
+            opt.onclick = () => {
+                penColor = opt.dataset.color;
+                document.querySelectorAll('.color-opt').forEach(b => b.classList.remove('ring-2','ring-offset-2','ring-black'));
+                opt.classList.add('ring-2','ring-offset-2','ring-black');
+            }
+        });
+
+        const getPos = (e) => {
             const r = els.pad.getBoundingClientRect();
             const cx = e.touches ? e.touches[0].clientX : e.clientX;
             const cy = e.touches ? e.touches[0].clientY : e.clientY;
             return { x: cx - r.left, y: cy - r.top };
-        }
+        };
 
         els.pad.onmousedown = els.pad.ontouchstart = (e) => {
-            drawing = true;
-            ctx.beginPath();
-            const p = getPos(e);
-            ctx.moveTo(p.x, p.y);
+            drawing = true; ctx.beginPath();
+            const p = getPos(e); ctx.moveTo(p.x, p.y);
+            if(e.touches) e.preventDefault(); // Mencegah scroll hanya di area gambar
         };
 
         els.pad.onmousemove = els.pad.ontouchmove = (e) => {
@@ -139,101 +148,88 @@
             ctx.lineCap = 'round';
             ctx.lineTo(p.x, p.y);
             ctx.stroke();
+            if(e.touches) e.preventDefault();
         };
 
         window.onmouseup = window.ontouchend = () => drawing = false;
-        els.clearPad.onclick = () => ctx.clearRect(0, 0, els.pad.width, els.pad.height);
+        els.clearPad.onclick = () => ctx.clearRect(0,0,els.pad.width,els.pad.height);
         els.savePad.onclick = () => {
             signatureImage = els.pad.toDataURL();
             els.modal.classList.add('hidden');
         };
 
-        // --- PDF LOGIC (FIX SCROLL & ERROR) ---
+        // PDF LOGIC
         els.upload.onchange = async (e) => {
             const file = e.target.files[0];
             if(!file) return;
-
             try {
                 const arrayBuffer = await file.arrayBuffer();
-                pdfDocBytes = new Uint8Array(arrayBuffer); // Simpan copy agar tidak detached
-                
-                // Gunakan copy data agar data asli tetap utuh untuk Export
+                pdfDocBytes = new Uint8Array(arrayBuffer);
                 const pdfInstance = await pdfjsLib.getDocument({data: pdfDocBytes.slice(0)}).promise;
-                
                 els.container.innerHTML = '';
                 els.emptyMsg.classList.add('hidden');
 
                 for (let i = 1; i <= pdfInstance.numPages; i++) {
                     const page = await pdfInstance.getPage(i);
                     const scale = els.container.offsetWidth / page.getViewport({scale:1}).width;
-                    const viewport = page.getViewport({ scale: Math.min(scale, 1.5) });
+                    const viewport = page.getViewport({ scale });
                     
                     const wrapper = document.createElement('div');
                     wrapper.className = 'page-wrapper';
                     const canvas = document.createElement('canvas');
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
+                    canvas.width = viewport.width; canvas.height = viewport.height;
                     wrapper.appendChild(canvas);
                     els.container.appendChild(wrapper);
-                    
                     await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
 
-                    // Click handler untuk menempelkan TTD
                     canvas.onclick = (ev) => {
                         if(!signatureImage) return alert("Gambar TTD dulu!");
                         const r = canvas.getBoundingClientRect();
                         const x = ev.clientX - r.left;
                         const y = ev.clientY - r.top;
-
                         const box = document.createElement('div');
                         box.className = 'sig-box';
-                        box.style.left = x + 'px';
-                        box.style.top = y + 'px';
+                        box.style.left = x + 'px'; box.style.top = y + 'px';
                         box.innerHTML = `<img src="${signatureImage}" class="w-full h-full object-contain">`;
                         wrapper.appendChild(box);
-
                         signaturesList.push({
-                            pageIndex: i - 1,
-                            x: x / viewport.scale,
-                            y: (canvas.height - y) / viewport.scale,
-                            image: signatureImage,
-                            width: 100 / viewport.scale,
-                            height: 50 / viewport.scale
+                            pageIndex: i-1, x: x/scale, y: (canvas.height-y)/scale,
+                            image: signatureImage, width: 100/scale, height: 50/scale
                         });
                     };
                 }
-            } catch (err) { alert("Error: " + err.message); }
+            } catch (err) { alert("Error PDF: " + err.message); }
         };
 
-        // --- EXPORT LOGIC ---
+        // EXPORT LOGIC
         els.export.onclick = async () => {
-            if(!pdfDocBytes || signaturesList.length === 0) return alert("Pilih PDF & TTD dulu!");
-
+            if(!pdfDocBytes || signaturesList.length === 0) return alert("Siapkan PDF & TTD!");
             try {
                 const { PDFDocument } = PDFLib;
-                // Selalu gunakan .slice(0) untuk menghindari Detached ArrayBuffer
                 const pdfDoc = await PDFDocument.load(pdfDocBytes.slice(0));
-                
                 for (const sig of signaturesList) {
                     const img = await pdfDoc.embedPng(sig.image);
                     const page = pdfDoc.getPages()[sig.pageIndex];
                     page.drawImage(img, {
-                        x: sig.x - (sig.width / 2),
-                        y: sig.y - (sig.height / 2),
-                        width: sig.width,
-                        height: sig.height,
+                        x: sig.x - (sig.width/2), y: sig.y - (sig.height/2),
+                        width: sig.width, height: sig.height
                     });
                 }
-
-                const pdfBytes = await pdfDoc.save();
-                const blob = new Blob([pdfBytes], { type: "application/pdf" });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = "Approved_Document.pdf";
-                link.click();
-            } catch (err) { alert("Export Gagal: " + err.message); }
+                const pdfB = await pdfDoc.save();
+                const b = new Blob([pdfB], {type: "application/pdf"});
+                const l = document.createElement('a');
+                l.href = URL.createObjectURL(b); l.download = "Signed.pdf"; l.click();
+            } catch (err) { alert("Gagal Export: " + err.message); }
         };
-    });
+    }
+
+    // CEK KETERSEDIAAN LIBRARY
+    const checkLibs = setInterval(() => {
+        if (window.PDFLib && window['pdfjs-dist/build/pdf']) {
+            clearInterval(checkLibs);
+            startApp();
+        }
+    }, 500);
     </script>
 </body>
 </html>
