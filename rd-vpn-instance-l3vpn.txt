@@ -156,12 +156,19 @@ ip vpn-instance BCA-KCP-IWAN
   vpn-target 65535:621004952 export-extcommunity
   vpn-target 65535:621004952 import-extcommunity
 #
-ip vpn-instance AIRNAV		
+ip vpn-instance VPN-AIRNAV		
  ipv4-family
   route-distinguisher 65535:53470820	
   apply-label per-instance
   vpn-target 65535:53470820	 export-extcommunity
   vpn-target 65535:53470820	 import-extcommunity
+#
+ip vpn-instance AIRNAV		
+ ipv4-family
+  route-distinguisher 65535:53470800	
+  apply-label per-instance
+  vpn-target 65535:53470800	 export-extcommunity
+  vpn-target 65535:53470800	 import-extcommunity
 #
 ip vpn-instance INET-DEDICATED-CJDO
  ipv4-family
@@ -406,6 +413,7 @@ ip vpn-instance INET-LITE-SMGHCP
   vpn-target 48000:10027 export-extcommunity
   vpn-target 48000:10027 import-extcommunity
 #
+
 
 
 
