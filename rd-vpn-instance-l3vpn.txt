@@ -412,6 +412,14 @@ ip vpn-instance INET-LITE-SMGHCP
   vpn-target 48000:10027 export-extcommunity
   vpn-target 48000:10027 import-extcommunity
 #
+ip vpn-instance AP2-SANGKURIANG
+ ipv4-family
+  route-distinguisher 65535:78977897
+  apply-label per-instance
+  vpn-target 65535:78977897 export-extcommunity
+  vpn-target 65535:78977897 import-extcommunity
+#
+
 
 
 
