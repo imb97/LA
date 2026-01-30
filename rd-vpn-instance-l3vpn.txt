@@ -419,6 +419,14 @@ ip vpn-instance AP2-SANGKURIANG
   vpn-target 65535:78977897 export-extcommunity
   vpn-target 65535:78977897 import-extcommunity
 #
+ip vpn-instance ATM-BUKOPIN
+ ipv4-family
+  route-distinguisher 6002:2
+  apply-label per-instance
+  vpn-target 6002:2 export-extcommunity
+  vpn-target 6002:2 import-extcommunity
+#
+
 
 
 
