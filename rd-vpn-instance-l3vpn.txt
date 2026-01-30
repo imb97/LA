@@ -433,6 +433,14 @@ ip vpn-instance BUKOPIN-SYARIAH
   vpn-target 65535:518121000 export-extcommunity
   vpn-target 65535:518121000 import-extcommunity
 #
+ip vpn-instance BTN_H2H
+ ipv4-family
+  route-distinguisher 65535:50061512
+  apply-label per-instance
+  vpn-target 65535:50061512 export-extcommunity
+  vpn-target 65535:50061512 import-extcommunity
+#
+
 
 
 
