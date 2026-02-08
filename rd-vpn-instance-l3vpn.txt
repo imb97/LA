@@ -447,6 +447,14 @@ ip vpn-instance BPR-LESTARI-JATENG
   vpn-target 65535:54464200 export-extcommunity
   vpn-target 65535:54464200 import-extcommunity
 #
+ip vpn-instance BPR-LESTARI-CABANG
+ ipv4-family
+  route-distinguisher 65535:12120500
+  apply-label per-instance
+  vpn-target 65535:12120500 export-extcommunity
+  vpn-target 65535:12120500 import-extcommunity
+#
+
 
 
 
