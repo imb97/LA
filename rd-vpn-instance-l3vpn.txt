@@ -440,6 +440,14 @@ ip vpn-instance BTN_H2H
   vpn-target 65535:50061512 export-extcommunity
   vpn-target 65535:50061512 import-extcommunity
 #
+ip vpn-instance BPR-LESTARI-JATENG
+ ipv4-family
+  route-distinguisher 65535:54464200
+  apply-label per-instance
+  vpn-target 65535:54464200 export-extcommunity
+  vpn-target 65535:54464200 import-extcommunity
+#
+
 
 
 
