@@ -454,6 +454,21 @@ ip vpn-instance BPR-LESTARI-CABANG
   vpn-target 65535:12120500 export-extcommunity
   vpn-target 65535:12120500 import-extcommunity
 #
+ip vpn-instance MODERN
+ ipv4-family
+  route-distinguisher 65535:52059777
+  apply-label per-instance
+  vpn-target 65535:52059777 export-extcommunity
+  vpn-target 65535:52059777 import-extcommunity
+#
+ip vpn-instance UOB-KAY
+ ipv4-family
+  route-distinguisher 65535:52039300
+  apply-label per-instance
+  vpn-target 65535:52039300 export-extcommunity
+  vpn-target 65535:52039300 import-extcommunity
+#
+
 
 
 
