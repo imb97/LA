@@ -503,6 +503,14 @@ ip vpn-instance AP-1
   vpn-target 65535:1600026 export-extcommunity
   vpn-target 65535:1600026 import-extcommunity
 #
+ip vpn-instance ASKRIDA
+ ipv4-family
+  route-distinguisher 65535:51886900
+  apply-label per-instance
+  vpn-target 65535:51886900 export-extcommunity
+  vpn-target 65535:51886900 import-extcommunity
+#
+
 
 
 
