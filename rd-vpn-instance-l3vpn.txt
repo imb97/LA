@@ -517,6 +517,14 @@ ip vpn-instance BANK-PAN-SYARIAH
   vpn-target 65535:79933001 export-extcommunity
   vpn-target 65535:79933001 import-extcommunity
 #
+ip vpn-instance KAO
+ ipv4-family
+  route-distinguisher 65535:50221000
+  apply-label per-instance
+  vpn-target 65535:50221000 export-extcommunity
+  vpn-target 65535:50221000 import-extcommunity
+#
+
 
 
 
