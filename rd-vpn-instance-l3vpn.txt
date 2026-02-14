@@ -489,6 +489,14 @@ ip vpn-instance BANK-DKI
   vpn-target 65535:51324100 export-extcommunity
   vpn-target 65535:51324100 import-extcommunity
 #
+ip vpn-instance LOTTE
+ ipv4-family
+  route-distinguisher 65535:10189515
+  apply-label per-instance
+  vpn-target 65535:10189515 export-extcommunity
+  vpn-target 65535:10189515 import-extcommunity
+#
+
 
 
 
