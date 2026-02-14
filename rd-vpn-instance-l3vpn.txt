@@ -468,6 +468,14 @@ ip vpn-instance UOB-KAY
   vpn-target 65535:52039300 export-extcommunity
   vpn-target 65535:52039300 import-extcommunity
 #
+ip vpn-instance NMS-CPE-FIREWALL
+ ipv4-family
+  route-distinguisher 65535:51715817
+  apply-label per-instance
+  vpn-target 65535:51715817 export-extcommunity
+  vpn-target 65535:51715817 import-extcommunity
+#
+
 
 
 
