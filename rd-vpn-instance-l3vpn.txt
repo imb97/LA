@@ -496,6 +496,14 @@ ip vpn-instance LOTTE
   vpn-target 65535:10189515 export-extcommunity
   vpn-target 65535:10189515 import-extcommunity
 #
+ip vpn-instance AP-1
+ ipv4-family
+  route-distinguisher 65535:1600026
+  apply-label per-instance
+  vpn-target 65535:1600026 export-extcommunity
+  vpn-target 65535:1600026 import-extcommunity
+#
+
 
 
 
