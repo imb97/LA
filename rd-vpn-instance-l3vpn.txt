@@ -475,6 +475,14 @@ ip vpn-instance NMS-CPE-FIREWALL
   vpn-target 65535:51715817 export-extcommunity
   vpn-target 65535:51715817 import-extcommunity
 #
+ip vpn-instance BUMIARTA
+ ipv4-family
+  route-distinguisher 65535:50058101
+  apply-label per-instance
+  vpn-target 65535:50058101 export-extcommunity
+  vpn-target 65535:50058101 import-extcommunity
+#
+
 
 
 
