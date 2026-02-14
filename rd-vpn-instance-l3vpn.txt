@@ -510,6 +510,14 @@ ip vpn-instance ASKRIDA
   vpn-target 65535:51886900 export-extcommunity
   vpn-target 65535:51886900 import-extcommunity
 #
+ip vpn-instance BANK-PAN-SYARIAH
+ ipv4-family
+  route-distinguisher 65535:79933001
+  apply-label per-instance
+  vpn-target 65535:79933001 export-extcommunity
+  vpn-target 65535:79933001 import-extcommunity
+#
+
 
 
 
