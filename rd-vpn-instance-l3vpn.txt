@@ -524,6 +524,41 @@ ip vpn-instance KAO
   vpn-target 65535:50221000 export-extcommunity
   vpn-target 65535:50221000 import-extcommunity
 #
+ip vpn-instance BANK-PUNDI
+ ipv4-family
+  route-distinguisher 65535:52497900
+  apply-label per-instance
+  vpn-target 65535:52497900 export-extcommunity
+  vpn-target 65535:52497900 import-extcommunity
+#
+ip vpn-instance BPDDIY-H2H
+ ipv4-family
+  route-distinguisher 65535:507276
+  apply-label per-instance
+  vpn-target 65535:507276 export-extcommunity
+  vpn-target 65535:507276 import-extcommunity
+#
+ip vpn-instance BSM-3RD
+ ipv4-family
+  route-distinguisher 65535:71600076
+  apply-label per-instance
+  vpn-target 65535:71600076 export-extcommunity
+  vpn-target 65535:71600076 import-extcommunity
+#
+ip vpn-instance SPP-MU
+ ipv4-family
+  route-distinguisher 65535:50111101
+  apply-label per-instance
+  vpn-target 65535:50111101 export-extcommunity
+  vpn-target 65535:50111101 import-extcommunity
+#
+ip vpn-instance BUKOPIN-H2H
+ ipv4-family
+  route-distinguisher 65535:64700469
+  apply-label per-instance
+  vpn-target 65535:64700469 export-extcommunity
+  vpn-target 65535:64700469 import-extcommunity
+#
 
 
 
