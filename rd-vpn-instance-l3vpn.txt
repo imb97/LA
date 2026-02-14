@@ -482,6 +482,14 @@ ip vpn-instance BUMIARTA
   vpn-target 65535:50058101 export-extcommunity
   vpn-target 65535:50058101 import-extcommunity
 #
+ip vpn-instance BANK-DKI
+ ipv4-family
+  route-distinguisher 65535:51324100
+  apply-label per-instance
+  vpn-target 65535:51324100 export-extcommunity
+  vpn-target 65535:51324100 import-extcommunity
+#
+
 
 
 
