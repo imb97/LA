@@ -581,6 +581,14 @@ ip vpn-instance TOYOTA
   vpn-target 65535:51825100 export-extcommunity
   vpn-target 65535:51825100 import-extcommunity
 #
+ip vpn-instance ATM-NISP
+ ipv4-family
+  route-distinguisher 65535:50189200
+  apply-label per-instance
+  vpn-target 65535:50189200 export-extcommunity
+  vpn-target 65535:50189200 import-extcommunity
+#
+
 
 
 
