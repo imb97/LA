@@ -559,6 +559,15 @@ ip vpn-instance BUKOPIN-H2H
   vpn-target 65535:64700469 export-extcommunity
   vpn-target 65535:64700469 import-extcommunity
 #
+ip vpn-instance BANK-MANDIRI-MITRA
+ ipv4-family
+  route-distinguisher 65535:51505805
+  apply-label per-instance
+  vpn-target 65535:51505805 export-extcommunity
+  vpn-target 65535:51505805 import-extcommunity
+  vpn-target 4800:1000 import-extcommunity
+#
+
 
 
 
