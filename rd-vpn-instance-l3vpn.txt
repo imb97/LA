@@ -574,6 +574,14 @@ ip vpn-instance BPD-PAPUA
   vpn-target 65535:51699600 export-extcommunity
   vpn-target 65535:51699600 import-extcommunity
 #
+ip vpn-instance TOYOTA
+ ipv4-family
+  route-distinguisher 65535:51825100
+  apply-label per-instance
+  vpn-target 65535:51825100 export-extcommunity
+  vpn-target 65535:51825100 import-extcommunity
+#
+
 
 
 
