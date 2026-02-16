@@ -567,6 +567,14 @@ ip vpn-instance BANK-MANDIRI-MITRA
   vpn-target 65535:51505805 import-extcommunity
   vpn-target 4800:1000 import-extcommunity
 #
+ip vpn-instance BPD-PAPUA
+ ipv4-family
+  route-distinguisher 65535:51699600
+  apply-label per-instance
+  vpn-target 65535:51699600 export-extcommunity
+  vpn-target 65535:51699600 import-extcommunity
+#
+
 
 
 
