@@ -588,6 +588,35 @@ ip vpn-instance ATM-NISP
   vpn-target 65535:50189200 export-extcommunity
   vpn-target 65535:50189200 import-extcommunity
 #
+ip vpn-instance SYB-SIGMA
+ ipv4-family
+  route-distinguisher 65535:51562003
+  apply-label per-instance
+  vpn-target 65535:51562003 export-extcommunity
+  vpn-target 65535:51562003 import-extcommunity
+#
+ip vpn-instance METALOGIX-VPN
+ ipv4-family
+  route-distinguisher 65535:51701600
+  apply-label per-instance
+  vpn-target 65535:51701600 export-extcommunity
+  vpn-target 65535:51701600 import-extcommunity
+#
+ip vpn-instance DJP-PAJAK
+ ipv4-family
+  route-distinguisher 65535:622900001
+  apply-label per-instance
+  vpn-target 65535:622900001 export-extcommunity
+  vpn-target 65535:622900001 import-extcommunity
+#
+ip vpn-instance SOLUSI-PARAMITRA
+ ipv4-family
+  route-distinguisher 65535:52967002
+  apply-label per-instance
+  vpn-target 65535:52967002 export-extcommunity
+  vpn-target 65535:52967002 import-extcommunity
+#
+
 
 
 
