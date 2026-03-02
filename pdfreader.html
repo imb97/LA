@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Raw Data Extractor</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; background-color: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .drop-zone { border: 2px dashed #ccc; padding: 30px; text-align: center; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
+        .drop-zone:hover { border-color: #007bff; background: #f0f7ff; }
+        pre { background: #2d2d2d; color: #7cfc00; padding: 15px; border-radius: 5px; overflow-x: auto; font-size: 13px; }
+        .info { margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
+        .status { font-weight: bold; color: #007bff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>PDF to ArrayBuffer Reader</h2>
+    <p>Pilih file PDF untuk mengambil <b>Raw Binary Data</b>-nya.</p>
+
+    <div class="drop-zone" id="dropZone">
+        Klik atau Drag & Drop file PDF di sini
+        <input type="file" id="fileInput" accept="application/pdf" style="display: none;">
+    </div>
+
+    <div id="resultArea" style="display: none;">
+        <div class="info">
+            <p>Status: <span class="status">Berhasil Membaca ArrayBuffer!</span></p>
+            <p>Ukuran Buffer: <span id="bufferSize">0</span> bytes</p>
+        </div>
+        
+        <h4>100 Byte Pertama (Hex):</h4>
+        <pre id="hexOutput"></pre>
+
+        <h4>Representasi String (Raw Text Preview):</h4>
+        <pre id="textOutput"></pre>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const resultArea = document.getElementById('resultArea');
+
+    // Trigger input file saat area di-klik
+    dropZone.onclick = () => fileInput.click();
+
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            readAsArrayBuffer(file);
+        }
+    };
+
+    function readAsArrayBuffer(file) {
+        const reader = new FileReader();
+
+        // Event saat pembacaan selesai
+        reader.onload = function(event) {
+            const arrayBuffer = event.target.result;
+            
+            // 1. Tampilkan ukuran buffer
+            document.getElementById('bufferSize').innerText = arrayBuffer.byteLength.toLocaleString();
+
+            // 2. Convert ke Hex untuk melihat "Magic Number" dan struktur awal
+            const uint8View = new Uint8Array(arrayBuffer);
+            let hex = "";
+            const sampleRange = Math.min(uint8View.length, 100); // Ambil 100 byte pertama saja sebagai contoh
+            
+            for (let i = 0; i < sampleRange; i++) {
+                hex += uint8View[i].toString(16).padStart(2, '0') + " ";
+                if ((i + 1) % 10 === 0) hex += "\n";
+            }
+            document.getElementById('hexOutput').innerText = hex + "...";
+
+            // 3. Convert ke String (Raw) untuk melihat header metadata PDF
+            const rawString = new TextDecoder().decode(uint8View.slice(0, 500));
+            document.getElementById('textOutput').innerText = rawString + "\n[Data dipotong untuk efisiensi...]";
+
+            resultArea.style.display = 'block';
+            console.log("Full ArrayBuffer Object:", arrayBuffer);
+        };
+
+        reader.onerror = () => alert("Gagal membaca file!");
+        
+        // Mulai membaca file sebagai ArrayBuffer
+        reader.readAsArrayBuffer(file);
+    }
+
+    // Handlers untuk Drag & Drop
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = "#007bff"; };
+    dropZone.ondragleave = () => dropZone.style.borderColor = "#ccc";
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === "application/pdf") {
+            readAsArrayBuffer(file);
+        } else {
+            alert("Mohon upload file PDF saja.");
+        }
+    };
+</script>
+
+</body>
+</html>
