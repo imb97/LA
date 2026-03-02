@@ -2,67 +2,98 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Export PDF Raw to TXT</title>
+    <title>PDF Text Reader</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 30px; line-height: 1.5; }
-        .box { border: 1px solid #ccc; padding: 20px; border-radius: 8px; max-width: 500px; }
-        button { background: #28a745; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; }
-        button:disabled { background: #94d3a2; cursor: not-allowed; }
+        body { font-family: sans-serif; padding: 30px; background: #fdfdfd; }
+        .container { max-width: 800px; margin: auto; }
+        .output-box { 
+            width: 100%; height: 400px; margin-top: 20px; 
+            padding: 15px; border: 1px solid #ddd; 
+            background: white; overflow-y: auto; white-space: pre-wrap;
+            border-radius: 8px; font-size: 14px; color: #333;
+        }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        button:disabled { background: #ccc; }
+        .loading { color: #d9534f; font-weight: bold; display: none; }
     </style>
 </head>
 <body>
 
-<div class="box">
-    <h3>PDF Raw Data to TXT</h3>
+<div class="container">
+    <h2>PDF Text Reader (Static)</h2>
+    <p>Upload PDF untuk mengekstrak isi teksnya secara langsung.</p>
+    
     <input type="file" id="pdfInput" accept="application/pdf">
-    <br><br>
-    <button id="btnExport" disabled>Export ke RAW_DATA.txt</button>
-    <p id="status"></p>
+    <button id="btnExport" style="display:none;">Download as JSON</button>
+    
+    <div id="loading" class="loading">Sedang membaca teks... Mohon tunggu.</div>
+    <div id="output" class="output-box">Isi teks akan muncul di sini...</div>
 </div>
 
 <script>
-    let rawBuffer = null;
-    let originalName = "";
+    // Konfigurasi Worker PDF.js (Wajib ada)
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     const pdfInput = document.getElementById('pdfInput');
+    const output = document.getElementById('output');
+    const loading = document.getElementById('loading');
     const btnExport = document.getElementById('btnExport');
-    const status = document.getElementById('status');
+    
+    let extractedText = "";
 
     pdfInput.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        
-        originalName = file.name;
-        rawBuffer = await file.arrayBuffer(); // Ambil ArrayBuffer
-        
-        btnExport.disabled = false;
-        status.innerText = "File siap diekspor.";
+
+        loading.style.display = "block";
+        output.innerText = "";
+        extractedText = "";
+
+        const reader = new FileReader();
+        reader.onload = async function() {
+            const typedarray = new Uint8Array(this.result);
+
+            try {
+                // 1. Load Dokumen
+                const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                let fullText = "";
+
+                // 2. Loop setiap halaman
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    
+                    // 3. Ambil string dari tiap item teks di halaman tersebut
+                    const pageText = textContent.items.map(item => item.str).join(" ");
+                    fullText += `--- Halaman ${i} ---\n${pageText}\n\n`;
+                }
+
+                extractedText = fullText;
+                output.innerText = fullText;
+                btnExport.style.display = "inline-block";
+            } catch (err) {
+                output.innerText = "Error: Gagal membaca teks PDF. Pastikan file tidak diproteksi password.";
+                console.error(err);
+            } finally {
+                loading.style.display = "none";
+            }
+        };
+        reader.readAsArrayBuffer(file);
     };
 
+    // Bonus: Export hasil teks ke JSON
     btnExport.onclick = () => {
-        if (!rawBuffer) return;
-
-        // 1. Ubah ArrayBuffer menjadi Base64 string agar aman di dalam .txt
-        const uint8 = new Uint8Array(rawBuffer);
-        let binary = '';
-        for (let i = 0; i < uint8.byteLength; i++) {
-            binary += String.fromCharCode(uint8[i]);
-        }
-        const base64Data = btoa(binary);
-
-        // 2. Buat Blob teks
-        const textContent = `FILE_NAME: ${originalName}\n` +
-                           `RAW_BASE64_DATA:\n${base64Data}`;
-        
-        const blob = new Blob([textContent], { type: 'text/plain' });
-        
-        // 3. Proses Download
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = originalName.replace(".pdf", "_raw.txt");
-        link.click();
-        
-        status.innerText = "Berhasil! Cek folder download Anda.";
+        const data = {
+            fileName: pdfInput.files[0].name,
+            content: extractedText
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "extracted_text.json";
+        a.click();
     };
 </script>
 
