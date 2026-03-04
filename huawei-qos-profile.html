@@ -430,8 +430,8 @@
             
             // Perhitungan PIR, CBS, PBS
             pir = Math.round(cir * 1.25);
-            cbs = Math.round(cir * 60);
-            pbs = Math.round(cbs * 1.62);
+            cbs = Math.round(cir * 125);
+            pbs = Math.round(cbs * 125);
 
             const configOutput = `qos-profile ${profileName}\ncar cir ${cir} pir ${pir} cbs ${cbs} pbs ${pbs}\n#`;
             
