@@ -1309,7 +1309,8 @@
 						}
 					}
 					if (line.startsWith('qos-profile ')) {
-						const bwMatch = line.match(/qos-profile (\d+[MKGT]?) (inbound|outbound)/);
+						const bwMatch = line.match(/qos-profile ([\w-]*\d+[MKGT]?) (inbound|outbound)/);
+						//const bwMatch = line.match(/qos-profile (\d+[MKGT]?) (inbound|outbound)/);
 						if (bwMatch) {
 							const bandwidthValue = bwMatch[1];
 							const direction = bwMatch[2];
@@ -1570,4 +1571,5 @@
         });
     </script>
 </body>
+
 </html>
