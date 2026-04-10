@@ -2,39 +2,77 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>JSON Parser Responsive</title>
+    <title>JSON Pro Parser: Filter, Sort & Summary</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f7f6; }
-        .container { max-width: 100%; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; }
-        textarea { width: 100%; height: 100px; box-sizing: border-box; margin-bottom: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; background-color: #f0f2f5; color: #333; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         
-        /* SOLUSI AGAR TIDAK KELUAR CONTAINER */
+        textarea { width: 100%; height: 100px; margin-bottom: 15px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-family: monospace; box-sizing: border-box; }
+        
+        .controls { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; background: #fff; padding: 10px 0; position: sticky; top: 0; z-index: 10; }
+        .search-box { flex-grow: 1; min-width: 200px; padding: 10px; border: 2px solid #007bff; border-radius: 6px; outline: none; }
+        
+        button { padding: 10px 18px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.2s; }
+        .btn-parse { background: #007bff; color: white; }
+        .btn-export { background: #1d6f42; color: white; }
+        select { padding: 10px; border-radius: 6px; border: 1px solid #ccc; background: white; }
+
+        /* Area Summary */
+        .summary-section { display: none; margin-bottom: 20px; padding: 15px; background: #e9ecef; border-radius: 8px; border-left: 5px solid #007bff; }
+        .summary-table { background: white; border-collapse: collapse; margin-top: 10px; min-width: 250px; }
+        .summary-table td, .summary-table th { border: 1px solid #ddd; padding: 8px 15px; text-align: left; }
+        .summary-table th { background: #6c757d; color: white; }
+
+        /* TABLE WRAPPER (Solusi agar tidak keluar container) */
         .table-wrapper { 
             width: 100%; 
             overflow-x: auto; 
-            margin-top: 20px; 
-            border: 1px solid #eee;
+            margin-top: 10px; 
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
         }
 
-        table { width: 100%; border-collapse: collapse; white-space: nowrap; } /* white-space: nowrap agar teks tidak ganti baris paksa */
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background: #333; color: white; position: sticky; top: 0; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; background: white; }
+        th { background: #343a40; color: white; cursor: pointer; padding: 12px; text-align: left; white-space: nowrap; }
+        th:hover { background: #495057; }
+        td { border: 1px solid #dee2e6; padding: 10px; font-size: 14px; }
+        tr:nth-child(even) { background: #f8f9fa; }
+        tr:hover { background: #f1f1f1; }
         
-        .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
-        input[type="text"] { padding: 8px; flex-grow: 1; border: 1px solid #ccc; border-radius: 4px; }
+        .no-data { text-align: center; padding: 30px; color: #888; font-style: italic; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>JSON Parser (Responsive Table)</h2>
-    <textarea id="jsonInput" placeholder="Paste JSON..."></textarea>
+    <h2>JSON Advanced Data Parser</h2>
     
+    <textarea id="jsonInput" placeholder="Tempel data JSON Anda di sini...">
+[
+  { "kota": "Jakarta", "area_id": 11, "ticket_id": 6758, "status": "Closed" },
+  { "kota": "Surabaya", "area_id": 12, "ticket_id": 6760, "status": "Open" },
+  { "kota": "Jakarta", "area_id": 11, "ticket_id": 6765, "status": "Open" },
+  { "kota": "Bandung", "area_id": 14, "ticket_id": 6770, "status": "Closed" },
+  { "kota": "Medan", "area_id": 15, "ticket_id": 6780, "status": "Pending" }
+]</textarea>
+
     <div class="controls">
-        <button onclick="processJSON()">Konversi</button>
-        <input type="text" id="filterInput" placeholder="Cari data..." onkeyup="applyFilter()">
-        <button onclick="exportToExcel()" style="background: green; color: white;">Excel</button>
+        <button class="btn-parse" onclick="processJSON()">Konversi Data</button>
+        
+        <input type="text" id="filterInput" class="search-box" placeholder="Filter data tabel..." onkeyup="applyFilter()">
+
+        <span>Ringkas Berdasarkan:</span>
+        <select id="columnSelect" onchange="generateSummary()">
+            <option value="">-- Pilih Kolom --</option>
+        </select>
+
+        <button class="btn-export" onclick="exportToExcel()">Download Excel (.xlsx)</button>
+    </div>
+
+    <div id="summarySection" class="summary-section">
+        <strong>Ringkasan Per Kolom:</strong>
+        <div id="summaryResult"></div>
     </div>
 
     <div class="table-wrapper">
@@ -44,37 +82,119 @@
 
 <script>
     let currentData = [];
+    let filteredData = [];
+    let sortOrder = {};
+
     function processJSON() {
+        const input = document.getElementById('jsonInput').value.trim();
         try {
-            currentData = JSON.parse(document.getElementById('jsonInput').value);
-            renderTable(currentData);
-        } catch (e) { alert("Format JSON Salah!"); }
+            currentData = JSON.parse(input);
+            filteredData = [...currentData]; 
+            
+            updateDropdown(currentData);
+            renderTable(filteredData);
+            
+            // Reset UI
+            document.getElementById('summarySection').style.display = 'none';
+            document.getElementById('filterInput').value = "";
+            document.getElementById('columnSelect').value = "";
+        } catch (e) {
+            alert("Error: Format JSON tidak valid. Periksa tanda petik atau kurung.");
+        }
     }
 
-    function renderTable(data) {
-        if (data.length === 0) return;
-        const headers = Object.keys(currentData[0]);
-        let html = `<table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
-        data.forEach(item => {
-            html += `<tr>${headers.map(h => `<td>${item[h] ?? ""}</td>`).join('')}</tr>`;
+    // Update Dropdown Pilihan Kolom
+    function updateDropdown(data) {
+        const select = document.getElementById('columnSelect');
+        const headers = Object.keys(data[0]);
+        select.innerHTML = '<option value="">-- Pilih Kolom --</option>';
+        headers.forEach(h => {
+            let opt = document.createElement('option');
+            opt.value = h;
+            opt.textContent = h.replace('_', ' ').toUpperCase();
+            select.appendChild(opt);
         });
-        document.getElementById('tableContainer').innerHTML = html + `</tbody></table>`;
     }
 
+    // Fungsi Filter Real-time
     function applyFilter() {
-        const key = document.getElementById('filterInput').value.toLowerCase();
-        const filtered = currentData.filter(row => 
-            Object.values(row).some(v => String(v).toLowerCase().includes(key))
+        const keyword = document.getElementById('filterInput').value.toLowerCase();
+        filteredData = currentData.filter(item => 
+            Object.values(item).some(val => String(val).toLowerCase().includes(keyword))
         );
-        renderTable(filtered);
+        renderTable(filteredData);
+        if (document.getElementById('columnSelect').value) generateSummary();
     }
 
+    // Fungsi Sorting
+    function sortTable(key) {
+        sortOrder[key] = !sortOrder[key];
+        filteredData.sort((a, b) => {
+            let valA = a[key], valB = b[key];
+            if (typeof valA === 'number' && typeof valB === 'number') {
+                return sortOrder[key] ? valA - valB : valB - valA;
+            }
+            return sortOrder[key] ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
+        });
+        renderTable(filteredData);
+    }
+
+    // Fungsi Summary (Group By)
+    function generateSummary() {
+        const col = document.getElementById('columnSelect').value;
+        const summarySection = document.getElementById('summarySection');
+        const summaryResult = document.getElementById('summaryResult');
+
+        if (!col) {
+            summarySection.style.display = 'none';
+            return;
+        }
+
+        const counts = {};
+        filteredData.forEach(item => {
+            let val = item[col] || "(Kosong)";
+            counts[val] = (counts[val] || 0) + 1;
+        });
+
+        summarySection.style.display = 'block';
+        let html = `<table class="summary-table"><thead><tr><th>${col.toUpperCase()}</th><th>JUMLAH</th></tr></thead><tbody>`;
+        for (let [key, val] of Object.entries(counts)) {
+            html += `<tr><td>${key}</td><td><b>${val}</b></td></tr>`;
+        }
+        summaryResult.innerHTML = html + `</tbody></table>`;
+    }
+
+    // Render Tabel ke HTML
+    function renderTable(data) {
+        const container = document.getElementById('tableContainer');
+        if (data.length === 0) {
+            container.innerHTML = "<div class='no-data'>Data tidak ditemukan.</div>";
+            return;
+        }
+
+        const headers = Object.keys(currentData[0]);
+        let html = `<table><thead><tr>`;
+        headers.forEach(h => html += `<th onclick="sortTable('${h}')">${h.replace('_', ' ')} ↕</th>`);
+        html += `</tr></thead><tbody>`;
+
+        data.forEach(item => {
+            html += `<tr>`;
+            headers.forEach(h => html += `<td>${item[h] ?? ""}</td>`);
+            html += `</tr>`;
+        });
+
+        container.innerHTML = html + `</tbody></table>`;
+    }
+
+    // Export ke Excel Asli
     function exportToExcel() {
-        const ws = XLSX.utils.json_to_sheet(currentData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Data");
-        XLSX.writeFile(wb, "Data_Export.xlsx");
+        if (filteredData.length === 0) return alert("Tidak ada data untuk diekspor");
+        const worksheet = XLSX.utils.json_to_sheet(filteredData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Data Terfilter");
+        XLSX.writeFile(workbook, "Data_Report.xlsx");
     }
 </script>
+
 </body>
 </html>
