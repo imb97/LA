@@ -616,6 +616,42 @@ ip vpn-instance SOLUSI-PARAMITRA
   vpn-target 65535:52967002 export-extcommunity
   vpn-target 65535:52967002 import-extcommunity
 #
+ip vpn-instance BANK-SBI
+ ipv4-family
+  route-distinguisher 65535:52131600
+  apply-label per-instance
+  vpn-target 65535:52131600 export-extcommunity
+  vpn-target 65535:52131600 import-extcommunity
+#
+ip vpn-instance EASTERN
+ ipv4-family
+  route-distinguisher 65535:54542600
+  apply-label per-instance
+  vpn-target 65535:54542600 export-extcommunity
+  vpn-target 65535:54542600 import-extcommunity
+#
+ip vpn-instance VISIONET
+ ipv4-family
+  route-distinguisher 65535:51868400
+  apply-label per-instance
+  vpn-target 65535:51868400 export-extcommunity
+  vpn-target 65535:51868400 import-extcommunity
+#
+ip vpn-instance INDOMARCO
+ ipv4-family
+  route-distinguisher 65535:50867500
+  apply-label per-instance
+  vpn-target 65535:50867500 export-extcommunity
+  vpn-target 65535:50867500 import-extcommunity
+  vpn-target 4800:1000 import-extcommunity
+#
+ip vpn-instance KOSPIN
+ ipv4-family
+  route-distinguisher 65535:521720000
+  apply-label per-instance
+  vpn-target 65535:521720000 export-extcommunity
+  vpn-target 65535:521720000 import-extcommunity
+#
 
 
 
