@@ -559,13 +559,19 @@ ip vpn-instance BUKOPIN-H2H
   vpn-target 65535:64700469 export-extcommunity
   vpn-target 65535:64700469 import-extcommunity
 #
-ip vpn-instance NEW-MANDIRI-MITRA
+ip vpn-instance BANK-MANDIRI-MITRA
  ipv4-family
   route-distinguisher 65535:51505805
   apply-label per-instance
   vpn-target 65535:51505805 export-extcommunity
   vpn-target 65535:51505805 import-extcommunity
 #
+ip vpn-instance NEW-MANDIRI-MITRA
+ ipv4-family
+  route-distinguisher 65535:51505811
+  apply-label per-instance
+  vpn-target 65535:51505811 export-extcommunity
+  vpn-target 65535:51505811 import-extcommunity
 ip vpn-instance BPD-PAPUA
  ipv4-family
   route-distinguisher 65535:51699600
